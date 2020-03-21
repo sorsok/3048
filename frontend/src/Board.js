@@ -1,10 +1,9 @@
 import React, {useCallback, useState} from 'react'
 import {
     chooseRandomEmptyTile,
-    chooseTwoNumbersInRange, getIndexTraversalOrder,
+    chooseTwoNumbersInRange, DOWN, getIndexTraversalOrder,
     getNextTileIndex,
-    indexToCoordinates,
-    inSameRowOrColumn,
+    inSameRowOrColumn, LEFT, RIGHT, UP,
     useArrowKeys,
 } from "./utils";
 import Tile from "./Tile";
@@ -29,10 +28,10 @@ const Board = ({size}) => {
             allTiles[index] = {value: 2, isEmpty: false}
         })
         return allTiles
-    }, [size])
+    }, [size, createEmptyTiles])
 
     const [boardState, setBoardState] = useState(createInitialBoardState())
-
+    const [score, setScore] = useState(0)
 
     const renderRows = useCallback((boardState) => {
         const rows = []
@@ -42,18 +41,15 @@ const Board = ({size}) => {
                 const tile = boardState[rowNum * size + colNum]
                 row.push(<Tile {...tile} />)
             }
-            rows.push(
-                <Row>
-                    {row}
-                </Row>
-            )
+            rows.push(<Row>{row}</Row>)
         }
         return rows
-    }, [createEmptyTiles])
+    }, [size])
 
 
-    const pushTile = useCallback((direction, tileIndex) => {
-        let tilePushed = false
+    const pushTile = useCallback((direction, tileIndex, mergedIndices) => {
+        let tileMoved = false
+        const newlyMergedIndices = []
         let tile = boardState[tileIndex]
         if (!tile.isEmpty) {
             let nextTileIndex = getNextTileIndex(tileIndex, direction, size)
@@ -64,46 +60,74 @@ const Board = ({size}) => {
                     nextTile.isEmpty = false
                     tile.value = null
                     tile.isEmpty = true
-                    tilePushed = true
-                } else if (nextTile.value === tile.value) {
+                    tileMoved = true
+                    tile = nextTile
+                    tileIndex = nextTileIndex
+                    nextTileIndex = getNextTileIndex(tileIndex, direction, size)
+                    nextTile = boardState[nextTileIndex]
+                } else if (nextTile.value === tile.value && !mergedIndices.includes(nextTileIndex)) {
                     nextTile.value = tile.value * 2
                     tile.value = null
                     tile.isEmpty = true
-                    tilePushed = true
+                    tileMoved = true
+                    newlyMergedIndices.push(nextTileIndex)
+                    setScore(score + nextTile.value)
+                    break
                 } else {
                     break
                 }
-                tile = nextTile
-                tileIndex = nextTileIndex
-                nextTileIndex = getNextTileIndex(tileIndex, direction, size)
-                nextTile = boardState[nextTileIndex]
             }
         }
-        return tilePushed
-    }, [indexToCoordinates, boardState, setBoardState, size])
+        return [tileMoved, newlyMergedIndices]
+    }, [boardState, size, score, setScore])
 
     const generateNewTile = useCallback(() => {
         const newTileIndex = chooseRandomEmptyTile(boardState)
         boardState[newTileIndex].value = Math.random() > 0.5 ? 4 : 2
         boardState[newTileIndex].isEmpty = false
-    },[boardState])
+    }, [boardState])
 
     const moveTiles = useCallback((direction) => {
         const tileIndices = getIndexTraversalOrder(direction, size)
         let tilesMoved = false
+        let mergedIndices = []
         for (let tileIndex of tileIndices) {
-            tilesMoved = pushTile(direction, tileIndex) || tilesMoved
+            const [tileMoved, newlyMergedIndices] = pushTile(direction, tileIndex, mergedIndices)
+            tilesMoved = tilesMoved || tileMoved
+            mergedIndices = mergedIndices.concat(newlyMergedIndices)
         }
         if (tilesMoved) {
             generateNewTile()
         }
-    }, [boardState, size, pushTile])
+        return tilesMoved
+    }, [size, pushTile, generateNewTile])
 
     useArrowKeys(moveTiles)
 
+    const beginAlgo = useCallback(async () => {
+        console.log("beginning algo")
+        while (true) {
+            await new Promise(resolve => setTimeout(resolve, 100))
+            if (moveTiles(UP)) continue
+            if (moveTiles(LEFT)) continue
+            if (moveTiles(RIGHT)) continue
+            if (moveTiles(DOWN)) continue
+            break
+        }
+        console.log("Game Over")
+    }, [moveTiles])
+
     return (
         <div className={styles.container}>
-            {renderRows(boardState)}
+            <div className={styles.score}>
+                {`Score: ${score}`}
+            </div>
+            <div className={styles.rowsContainer}>
+                {renderRows(boardState)}
+            </div>
+            <button className={styles.playForMe} onClick={beginAlgo}>
+                Play For me
+            </button>
         </div>
     )
 }

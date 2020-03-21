@@ -1,8 +1,34 @@
-.container{
+.container {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    border: 1px solid #ededed;
+    border: 4px solid #5d5d5d;
     width: 50px;
     height: 50px;
+    font-size: 24px;
+    font-weight: bold;
 }
+
+.fiveOrLess {
+    color: #9d9d9d;
+    background-color: #fdfdfd;
+}
+
+.twentyOrLess {
+    color: white;
+    background-color: orange;
+}
+
+.hundredOrLess {
+    color: white;
+    background-color: red;
+}
+
+.thousandOrLess {
+    color: white;
+    background-color: #edcf72;
+}
+.bigNumber {
+    font-size: 20px;
+}
+

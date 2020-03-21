@@ -74,23 +74,24 @@ export const chooseRandomEmptyTile = (boardState) => {
     return position
 }
 
-export const useKeyPress = (targetKey, handler) => {
+export const useKeyPress = (targetKey, onKeyDownHandler) => {
     // State for keeping track of whether key is pressed
     const [keyPressed, setKeyPressed] = useState(false);
 
     // If pressed key is our target key then set to true
-    const downHandler = ({key}) => {
+    const downHandler = useCallback(({key}) => {
         if (key === targetKey) {
+            onKeyDownHandler()
             setKeyPressed(true);
         }
-    }
+    },[targetKey,onKeyDownHandler])
 
     // If released key is our target key then set to false
-    const upHandler = ({key}) => {
+    const upHandler =  useCallback(({key}) => {
         if (key === targetKey) {
             setKeyPressed(false);
         }
-    };
+    },[targetKey])
 
     // Add event listeners
     useEffect(() => {
@@ -101,9 +102,8 @@ export const useKeyPress = (targetKey, handler) => {
             window.removeEventListener('keydown', downHandler);
             window.removeEventListener('keyup', upHandler);
         };
-    }, []); // Empty array ensures that effect is only run on mount and unmount
+    }, [downHandler,upHandler]); // Empty array ensures that effect is only run on mount and unmount
 
-    if (keyPressed) handler()
     return keyPressed
 }
 
