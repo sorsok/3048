@@ -84,14 +84,14 @@ export const useKeyPress = (targetKey, onKeyDownHandler) => {
             onKeyDownHandler()
             setKeyPressed(true);
         }
-    },[targetKey,onKeyDownHandler])
+    }, [targetKey, onKeyDownHandler])
 
     // If released key is our target key then set to false
-    const upHandler =  useCallback(({key}) => {
+    const upHandler = useCallback(({key}) => {
         if (key === targetKey) {
             setKeyPressed(false);
         }
-    },[targetKey])
+    }, [targetKey])
 
     // Add event listeners
     useEffect(() => {
@@ -102,21 +102,26 @@ export const useKeyPress = (targetKey, onKeyDownHandler) => {
             window.removeEventListener('keydown', downHandler);
             window.removeEventListener('keyup', upHandler);
         };
-    }, [downHandler,upHandler]); // Empty array ensures that effect is only run on mount and unmount
+    }, [downHandler, upHandler]); // Empty array ensures that effect is only run on mount and unmount
 
     return keyPressed
 }
 
 export const useArrowKeys = (onKeyPress) => {
     const onKeyPressUp = () => onKeyPress(UP)
-    useKeyPress('ArrowUp', onKeyPressUp)
-
     const onKeyPressDown = () => onKeyPress(DOWN)
-    useKeyPress('ArrowDown', onKeyPressDown)
-
     const onKeyPressRight = () => onKeyPress(RIGHT)
-    useKeyPress('ArrowRight', onKeyPressRight)
-
     const onKeyPressLeft = () => onKeyPress(LEFT)
+
+    useKeyPress('ArrowUp', onKeyPressUp)
+    useKeyPress('ArrowDown', onKeyPressDown)
+    useKeyPress('ArrowRight', onKeyPressRight)
     useKeyPress('ArrowLeft', onKeyPressLeft)
+}
+
+
+export const useToggle = (initialState) => {
+    const [state, setState] = useState(initialState)
+    const toggleState = useCallback(() => (setState(!state)), [setState, state])
+    return [state, toggleState]
 }
