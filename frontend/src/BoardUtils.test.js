@@ -1,31 +1,31 @@
 import {
-    applyAction,
-    reverseAction,
-    MOVE,
-    applyAllActions,
-    reverseAllActions,
-    getMoveTilesActions,
-    MERGE
-} from "./BoardUtils";
-import {DOWN} from "./utils";
+  applyAction,
+  reverseAction,
+  MOVE,
+  applyAllActions,
+  reverseAllActions,
+  getMoveTilesActions,
+  MERGE,
+} from './BoardUtils'
+import { DOWN } from './utils'
 
 const boardState = [
-    {"value": null, "isEmpty": true},
-    {"value": null, "isEmpty": true},
-    {"value": null, "isEmpty": true},
-    {"value": null, "isEmpty": true},
-    {"value": null, "isEmpty": true},
-    {"value": null, "isEmpty": true},
-    {"value": null, "isEmpty": true},
-    {"value": 2, "isEmpty": false},
-    {"value": null, "isEmpty": true},
-    {"value": null, "isEmpty": true},
-    {"value": null, "isEmpty": true},
-    {"value": 2, "isEmpty": false},
-    {"value": null, "isEmpty": true},
-    {"value": null, "isEmpty": true},
-    {"value": null, "isEmpty": true},
-    {"value": null, "isEmpty": true}
+  { value: null, isEmpty: true },
+  { value: null, isEmpty: true },
+  { value: null, isEmpty: true },
+  { value: null, isEmpty: true },
+  { value: null, isEmpty: true },
+  { value: null, isEmpty: true },
+  { value: null, isEmpty: true },
+  { value: 2, isEmpty: false },
+  { value: null, isEmpty: true },
+  { value: null, isEmpty: true },
+  { value: null, isEmpty: true },
+  { value: 2, isEmpty: false },
+  { value: null, isEmpty: true },
+  { value: null, isEmpty: true },
+  { value: null, isEmpty: true },
+  { value: null, isEmpty: true },
 ]
 
 //
@@ -36,139 +36,124 @@ const boardState = [
 // );
 
 test('apply and reverse actions', () => {
-    const boardStateCopy = JSON.parse(JSON.stringify(boardState))
-    const action = {
-        type: MOVE,
-        toIndex: 8,
-        fromIndex: 7
-    }
-    applyAction(action, boardStateCopy)
-    expect(boardStateCopy).toEqual(
-        [
-            {"value": null, "isEmpty": true},
-            {"value": null, "isEmpty": true},
-            {"value": null, "isEmpty": true},
-            {"value": null, "isEmpty": true},
-            {"value": null, "isEmpty": true},
-            {"value": null, "isEmpty": true},
-            {"value": null, "isEmpty": true},
-            {"value": null, "isEmpty": true},
-            {"value": 2, "isEmpty": false},
-            {"value": null, "isEmpty": true},
-            {"value": null, "isEmpty": true},
-            {"value": 2, "isEmpty": false},
-            {"value": null, "isEmpty": true},
-            {"value": null, "isEmpty": true},
-            {"value": null, "isEmpty": true},
-            {"value": null, "isEmpty": true}
-        ])
-    reverseAction(action, boardStateCopy)
-    expect(boardStateCopy).toEqual(boardState)
+  const boardStateCopy = JSON.parse(JSON.stringify(boardState))
+  const action = {
+    type: MOVE,
+    toIndex: 8,
+    fromIndex: 7,
+  }
+  applyAction(action, boardStateCopy)
+  expect(boardStateCopy).toEqual([
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: 2, isEmpty: false },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: 2, isEmpty: false },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+  ])
+  reverseAction(action, boardStateCopy)
+  expect(boardStateCopy).toEqual(boardState)
 })
-
 
 test('apply and reverse all actions', () => {
-    const boardStateCopy = JSON.parse(JSON.stringify(boardState))
-    const actions = [
-        {
-            type: MOVE,
-            toIndex: 8,
-            fromIndex: 7
-        },
-        {
-            type: MOVE,
-            toIndex: 9,
-            fromIndex: 8
-        }
-    ]
-    applyAllActions(actions, boardStateCopy)
-    expect(boardStateCopy).toEqual(
-        [
-            {"value": null, "isEmpty": true},
-            {"value": null, "isEmpty": true},
-            {"value": null, "isEmpty": true},
-            {"value": null, "isEmpty": true},
-            {"value": null, "isEmpty": true},
-            {"value": null, "isEmpty": true},
-            {"value": null, "isEmpty": true},
-            {"value": null, "isEmpty": true},
-            {"value": null, "isEmpty": true},
-            {"value": 2, "isEmpty": false},
-            {"value": null, "isEmpty": true},
-            {"value": 2, "isEmpty": false},
-            {"value": null, "isEmpty": true},
-            {"value": null, "isEmpty": true},
-            {"value": null, "isEmpty": true},
-            {"value": null, "isEmpty": true}
-        ])
-    reverseAllActions(actions, boardStateCopy)
-    expect(boardStateCopy).toEqual(boardState)
-    expect(actions).toEqual([
-        {
-            type: MOVE,
-            toIndex: 8,
-            fromIndex: 7
-        },
-        {
-            type: MOVE,
-            toIndex: 9,
-            fromIndex: 8
-        }
-    ])
+  const boardStateCopy = JSON.parse(JSON.stringify(boardState))
+  const actions = [
+    {
+      type: MOVE,
+      toIndex: 8,
+      fromIndex: 7,
+    },
+    {
+      type: MOVE,
+      toIndex: 9,
+      fromIndex: 8,
+    },
+  ]
+  applyAllActions(actions, boardStateCopy)
+  expect(boardStateCopy).toEqual([
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: 2, isEmpty: false },
+    { value: null, isEmpty: true },
+    { value: 2, isEmpty: false },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+  ])
+  reverseAllActions(actions, boardStateCopy)
+  expect(boardStateCopy).toEqual(boardState)
+  expect(actions).toEqual([
+    {
+      type: MOVE,
+      toIndex: 8,
+      fromIndex: 7,
+    },
+    {
+      type: MOVE,
+      toIndex: 9,
+      fromIndex: 8,
+    },
+  ])
 })
 
-test("get move tiles actions", () => {
-    const boardStateCopy = JSON.parse(JSON.stringify(boardState))
-    const actions = [
-        {
-            type: MOVE,
-            fromIndex: 11,
-            toIndex: 15
-        },
-        {
-            type: MOVE,
-            fromIndex: 7,
-            toIndex: 11
-        },
-        {
-            type: MERGE,
-            fromIndex: 11,
-            toIndex: 15
-        }
-    ]
-    expect(getMoveTilesActions(DOWN, boardStateCopy)).toEqual(actions)
-    expect(boardStateCopy).toEqual(boardState)
-    applyAllActions(actions, boardStateCopy)
-    expect(boardStateCopy).toEqual([
-        {"value": null, "isEmpty": true},
-        {"value": null, "isEmpty": true},
-        {"value": null, "isEmpty": true},
-        {"value": null, "isEmpty": true},
-        {"value": null, "isEmpty": true},
-        {"value": null, "isEmpty": true},
-        {"value": null, "isEmpty": true},
-        {"value": null, "isEmpty": true},
-        {"value": null, "isEmpty": true},
-        {"value": null, "isEmpty": true},
-        {"value": null, "isEmpty": true},
-        {"value": null, "isEmpty": true},
-        {"value": null, "isEmpty": true},
-        {"value": null, "isEmpty": true},
-        {"value": null, "isEmpty": true},
-        {"value": 4, "isEmpty": false},
-    ])
-    reverseAllActions(actions, boardStateCopy)
-    expect(boardStateCopy).toEqual(boardState)
+test('get move tiles actions', () => {
+  const boardStateCopy = JSON.parse(JSON.stringify(boardState))
+  const actions = [
+    {
+      type: MOVE,
+      fromIndex: 11,
+      toIndex: 15,
+    },
+    {
+      type: MOVE,
+      fromIndex: 7,
+      toIndex: 11,
+    },
+    {
+      type: MERGE,
+      fromIndex: 11,
+      toIndex: 15,
+    },
+  ]
+  expect(getMoveTilesActions(DOWN, boardStateCopy)).toEqual(actions)
+  expect(boardStateCopy).toEqual(boardState)
+  applyAllActions(actions, boardStateCopy)
+  expect(boardStateCopy).toEqual([
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: 4, isEmpty: false },
+  ])
+  reverseAllActions(actions, boardStateCopy)
+  expect(boardStateCopy).toEqual(boardState)
 })
-
-// test('3 * 4 = 12', () => {
-//     expect(mul(3, 4)).toBe(12);
-// });
-//
-// test('5 - 6 = -1', () => {
-//     expect(sub(5, 6)).toBe(-1);
-// });
-//
-// test('8 / 4 = 2', () => {
-//     expect(div(8, 4)).toBe(2);
-// });
