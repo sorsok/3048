@@ -18,12 +18,6 @@
   "globals": {
     "__DEBUG__": true,
     "__PRODUCTION__": true,
-    "k3": true,
-    "waffle": true,
-    "React": true,
-    "dataLayer": true,
-    "ga": true,
-    "gaData": true
   },
   "plugins": ["react"],
   "settings": {

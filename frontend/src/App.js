@@ -49,7 +49,7 @@ const App = () => {
   }, [setBoardState, createInitialBoardState, setScore, setAutomatedMoveCount, toggleAlgo])
 
   const stepAlgo = useCallback(async () => {
-    if (!runningAlgo) return
+    if (!runningAlgo || gameOver) return
     // await new Promise(resolve => setTimeout(resolve, 0.5))
     const nextDirection = pickNextMoveDirection(boardState)
     if (nextDirection) {
@@ -58,7 +58,7 @@ const App = () => {
       return
     }
     toggleAlgo()
-  }, [moveTiles, toggleAlgo, runningAlgo, automatedMoveCount, setAutomatedMoveCount])
+  }, [moveTiles, toggleAlgo, runningAlgo, automatedMoveCount, setAutomatedMoveCount, gameOver])
 
   useEffect(() => {
     stepAlgo()

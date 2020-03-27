@@ -28,6 +28,11 @@
     color: white;
     background-color: #edcf72;
 }
+
+.tenThousandOrLess {
+    background-color: #deaf1d;
+    color: white;
+}
 .bigNumber {
     font-size: 20px;
 }
