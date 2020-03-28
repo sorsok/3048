@@ -1,4 +1,4 @@
-import { DOWN, LEFT, RIGHT, UP } from './utils'
+import { DOWN, getAdjacentIndices, LEFT, RIGHT, UP } from './utils'
 import {
   applyAction,
   applyAllActions,
@@ -114,18 +114,59 @@ const smarterAlgorithm = boardState => {
   return options[0]
 }
 
+const getSearchDepth = boardState => {
+  const numberOfEmptyTiles = boardState.filter(tile => tile.isEmpty).length
+  if (numberOfEmptyTiles > 3) return 2
+  return 3
+}
+
+const getBoardAdjacencyScore = boardState => {
+  const size = boardState.length ** 0.5
+  return boardState
+    .map((tile, index) => {
+      if (tile.isEmpty) return 0
+      const adjacentIndices = getAdjacentIndices(index, size)
+      return adjacentIndices
+        .map(adjacentIndex => {
+          const adjacentTile = boardState[adjacentIndex]
+          if (adjacentTile.isEmpty) {
+            return 0
+          }
+          const difference = Math.abs(adjacentTile.value - tile.value)
+
+          if (difference === 0) {
+            return adjacentTile.value
+          }
+          if (difference === adjacentTile.value || difference === tile.value) {
+            return difference / 2
+          }
+          return -difference / 2
+        })
+        .reduce((sum, score) => sum + score, 0)
+    })
+    .reduce((sum, score) => sum + score, 0)
+}
+
+const evaluateBoard = boardState => {
+  const density = getBoardDensity(boardState)
+  const adjacencyScore = getBoardAdjacencyScore(boardState)
+  return density + adjacencyScore
+}
+
 const lookaheadAlgorithm = boardState => {
+  let leaves = 0
   const inner = depth => {
-    if (depth === 1) {
-      return smarterAlgorithm(boardState)
+    if (depth === 0) {
+      leaves += 1
+      return { score: evaluateBoard(boardState) }
     }
-    let options = [
+    const options = [
       { direction: UP },
       { direction: LEFT },
       { direction: RIGHT },
       { direction: DOWN },
     ]
-    options = options
+    let validOptions = options
       .map(option => {
         const actions = getMoveTilesActions(option.direction, boardState)
         if (actions.length === 0) {
@@ -137,40 +178,61 @@ const lookaheadAlgorithm = boardState => {
         }
       })
       .filter(option => option !== null)
-      .map(option => {
-        applyAllActions(option.actions, boardState)
-        const generateTileActionsTwo = boardState
-          .map((tile, index) => {
-            if (tile.isEmpty) {
-              return getGenerateTileAction(index, 2)
-            }
-            return null
-          })
-          .filter(action => action !== null)
-        const generateTileActionsFour = boardState
-          .map((tile, index) => {
-            if (tile.isEmpty) {
-              return getGenerateTileAction(index, 4)
-            }
-            return null
-          })
-          .filter(action => action !== null)
-        const generateTileActions = generateTileActionsTwo.concat(generateTileActionsFour)
-        const averageDensity = generateTileActions
-          .map(action => {
-            applyAction(action, boardState)
-            const nextMove = inner(depth - 1)
-            reverseAction(action, boardState)
-            return nextMove ? nextMove.density : 0
-          })
-          .reduce((sum, density) => sum + density, 0)
-        reverseAllActions(option.actions, boardState)
-        return { density: averageDensity, ...option }
-      })
-    options.sort((a, b) => b.density - a.density)
-    return options[0]
+    if (validOptions.length === 0) {
+      // we've reached a leaf with no possible moves
+      return { score: -Infinity }
+    }
+    validOptions = validOptions.map(option => {
+      applyAllActions(option.actions, boardState)
+      const generateTileActionsTwo = boardState
+        .map((tile, index) => {
+          if (tile.isEmpty) {
+            return getGenerateTileAction(index, 2)
+          }
+          return null
+        })
+        .filter(action => action !== null)
+      const generateTileActionsFour = boardState
+        .map((tile, index) => {
+          if (tile.isEmpty) {
+            return getGenerateTileAction(index, 4)
+          }
+          return null
+        })
+        .filter(action => action !== null)
+      const averageScoreTwo = generateTileActionsTwo
+        .map(action => {
+          applyAction(action, boardState)
+          const nextMove = inner(depth - 1)
+          reverseAction(action, boardState)
+          if (!nextMove) {
+            console.log('fuck')
+          }
+          return nextMove.score
+        })
+        .reduce((sum, score) => sum + score, 0)
+      const averageScoreFour = generateTileActionsFour
+        .map(action => {
+          applyAction(action, boardState)
+          const nextMove = inner(depth - 1)
+          reverseAction(action, boardState)
+          if (!nextMove) {
+            console.log('fuck')
+          }
+          return nextMove.score
+        })
+        .reduce((sum, score) => sum + score, 0)
+      reverseAllActions(option.actions, boardState)
+      return { score: 0.9 * averageScoreTwo + 0.1 * averageScoreFour, ...option }
+    })
+    validOptions.sort((a, b) => b.score - a.score)
+    return validOptions[0]
   }
-  return inner(3)
+
+  const searchDepth = getSearchDepth(boardState)
+  const result = inner(searchDepth)
+  console.log('Search Depth: ', searchDepth, ', Actual: ', leaves)
+  return result
 }
 
 export const pickNextMoveDirection = boardState => {

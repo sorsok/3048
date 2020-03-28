@@ -125,3 +125,9 @@ export const useToggle = (initialState) => {
     const toggleState = useCallback(() => (setState(!state)), [setState, state])
     return [state, toggleState]
 }
+
+
+export const getAdjacentIndices = (index, size) =>{
+    const indices = [index -1, index + 1, index + size, index - size]
+    return indices.filter(idx => idx > 0 && idx < size ** 2)
+}
