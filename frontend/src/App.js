@@ -25,7 +25,7 @@ const App = () => {
   const [automatedMoveCount, setAutomatedMoveCount] = useState(0)
 
   const moveTiles = useCallback(
-    (direction) => {
+    direction => {
       const actions = getMoveTilesActions(direction, boardState)
       if (actions.length > 0) {
         setScore(score + applyAllActions(actions, boardState))
@@ -34,7 +34,7 @@ const App = () => {
         setGameOver(isGameOver(boardState))
       }
     },
-    [boardState, setMoveCount, moveCount]
+    [boardState, setMoveCount, moveCount, score]
   )
 
   useArrowKeys(moveTiles)
@@ -46,7 +46,7 @@ const App = () => {
     setMoveCount(0)
     setGameOver(false)
     if (runningAlgo) toggleAlgo()
-  }, [setBoardState, createInitialBoardState, setScore, setAutomatedMoveCount, toggleAlgo])
+  }, [setBoardState, setScore, setAutomatedMoveCount, toggleAlgo, runningAlgo, size])
 
   const stepAlgo = useCallback(async () => {
     if (!runningAlgo || gameOver) return
@@ -55,14 +55,26 @@ const App = () => {
     if (nextDirection) {
       moveTiles(nextDirection)
       setAutomatedMoveCount(automatedMoveCount + 1)
+      if (moveCount % 10 === 0) {
+        toggleAlgo()
+      }
       return
     }
     toggleAlgo()
-  }, [moveTiles, toggleAlgo, runningAlgo, automatedMoveCount, setAutomatedMoveCount, gameOver])
+  }, [
+    boardState,
+    moveTiles,
+    toggleAlgo,
+    runningAlgo,
+    automatedMoveCount,
+    setAutomatedMoveCount,
+    gameOver,
+    moveCount,
+  ])
 
   useEffect(() => {
     stepAlgo()
-  }, [stepAlgo])
+  }, [stepAlgo, moveCount, toggleAlgo])
 
   return (
     <div className={styles.container}>

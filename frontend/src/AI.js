@@ -10,9 +10,9 @@ import {
   reverseAllActions,
 } from './BoardUtils'
 
-const simpleAlgorithm = (boardState) => {
+const simpleAlgorithm = boardState => {
   let prevMove
-  const inner = (boardState) => {
+  const inner = boardState => {
     const upActions = getMoveTilesActions(UP, boardState)
     if (upActions.length > 0 && prevMove !== LEFT) {
       prevMove = UP
@@ -38,7 +38,7 @@ const simpleAlgorithm = (boardState) => {
 }
 
 const getActionMergeFrequencies = (actions, boardState) => {
-  const mergeActions = actions.filter((action) => action.type === MERGE)
+  const mergeActions = actions.filter(action => action.type === MERGE)
   return mergeActions.reduce((acc, action) => {
     const tileValue = boardState[action.toIndex].value
     const mergeFrequencies = acc
@@ -47,7 +47,7 @@ const getActionMergeFrequencies = (actions, boardState) => {
   }, {})
 }
 
-const getMinMergeFrequency = (mergeFrequencies) => {
+const getMinMergeFrequency = mergeFrequencies => {
   if (Object.keys(mergeFrequencies).length === 0) return [Infinity, 0]
   return Object.entries(mergeFrequencies).sort((a, b) => a[0] - b[0])[0]
 }
@@ -59,7 +59,7 @@ const mostLowMerges = (a, b) => {
   return aMinFrequency[0] - bMinFrequency[0]
 }
 
-const getMaxMergeFrequency = (mergeFrequencies) => {
+const getMaxMergeFrequency = mergeFrequencies => {
   if (Object.keys(mergeFrequencies).length === 0) return [0, 0]
   return Object.entries(mergeFrequencies).sort((a, b) => b[0] - a[0])[0]
 }
@@ -71,8 +71,8 @@ const mostHighMerges = (a, b) => {
   return bMaxFrequency[0] - aMaxFrequency[0]
 }
 
-const getBoardDensity = (boardState) => {
-  const nonEmptyTiles = boardState.filter((tile) => !tile.isEmpty)
+const getBoardDensity = boardState => {
+  const nonEmptyTiles = boardState.filter(tile => !tile.isEmpty)
   return nonEmptyTiles.reduce((sum, tile) => sum + tile.value, 0) / nonEmptyTiles.length
 }
 
@@ -83,13 +83,13 @@ const getActionDensity = (actions, boardState) => {
   return averageValue
 }
 
-const smarterAlgorithm = (boardState) => {
+const smarterAlgorithm = boardState => {
   let options = [{ direction: UP }, { direction: LEFT }, { direction: RIGHT }, { direction: DOWN }]
   const maxValueOnBoard = boardState
-    .filter((tile) => !tile.isEmpty)
+    .filter(tile => !tile.isEmpty)
     .reduce((maxValue, tile) => (tile.value > maxValue ? tile.value : maxValue), 0)
   options = options
-    .map((option) => {
+    .map(option => {
       const actions = getMoveTilesActions(option.direction, boardState)
       if (actions.length === 0) {
         return null
@@ -98,14 +98,14 @@ const smarterAlgorithm = (boardState) => {
         density: getActionDensity(actions, boardState),
         mergeFrequencies: getActionMergeFrequencies(actions, boardState),
         movesMaxValue: actions
-          .filter((action) => action.type === MOVE)
-          .map((action) => boardState[action.fromIndex].value)
-          .some((value) => value === maxValueOnBoard),
+          .filter(action => action.type === MOVE)
+          .map(action => boardState[action.fromIndex].value)
+          .some(value => value === maxValueOnBoard),
         actions,
         ...option,
       }
     })
-    .filter((option) => option !== null)
+    .filter(option => option !== null)
 
   options.sort((a, b) => {
     if (a.movesMaxValue !== b.movesMaxValue) return a.movesMaxValue ? 1 : -1
@@ -114,8 +114,8 @@ const smarterAlgorithm = (boardState) => {
   return options[0]
 }
 
-const lookaheadAlgorithm = (boardState) => {
-  const inner = (depth) => {
+const lookaheadAlgorithm = boardState => {
+  const inner = depth => {
     if (depth === 1) {
       return smarterAlgorithm(boardState)
     }
@@ -126,7 +126,7 @@ const lookaheadAlgorithm = (boardState) => {
       { direction: DOWN },
     ]
     options = options
-      .map((option) => {
+      .map(option => {
         const actions = getMoveTilesActions(option.direction, boardState)
         if (actions.length === 0) {
           return null
@@ -136,8 +136,8 @@ const lookaheadAlgorithm = (boardState) => {
           ...option,
         }
       })
-      .filter((option) => option !== null)
-      .map((option) => {
+      .filter(option => option !== null)
+      .map(option => {
         applyAllActions(option.actions, boardState)
         const generateTileActionsTwo = boardState
           .map((tile, index) => {
@@ -146,7 +146,7 @@ const lookaheadAlgorithm = (boardState) => {
             }
             return null
           })
-          .filter((action) => action !== null)
+          .filter(action => action !== null)
         const generateTileActionsFour = boardState
           .map((tile, index) => {
             if (tile.isEmpty) {
@@ -154,10 +154,10 @@ const lookaheadAlgorithm = (boardState) => {
             }
             return null
           })
-          .filter((action) => action !== null)
+          .filter(action => action !== null)
         const generateTileActions = generateTileActionsTwo.concat(generateTileActionsFour)
         const averageDensity = generateTileActions
-          .map((action) => {
+          .map(action => {
             applyAction(action, boardState)
             const nextMove = inner(depth - 1)
             reverseAction(action, boardState)
@@ -173,6 +173,6 @@ const lookaheadAlgorithm = (boardState) => {
   return inner(3)
 }
 
-export const pickNextMoveDirection = (boardState) => {
+export const pickNextMoveDirection = boardState => {
   return lookaheadAlgorithm(boardState).direction
 }
