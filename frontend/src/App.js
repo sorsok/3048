@@ -25,7 +25,7 @@ const App = () => {
   const [automatedMoveCount, setAutomatedMoveCount] = useState(0)
 
   const moveTiles = useCallback(
-    direction => {
+    (direction) => {
       const actions = getMoveTilesActions(direction, boardState)
       if (actions.length > 0) {
         setScore(score + applyAllActions(actions, boardState))

@@ -115,45 +115,52 @@ const smarterAlgorithm = boardState => {
   return options[0]
 }
 
-const getSearchDepth = boardState => {
-  const numberOfEmptyTiles = boardState.filter(tile => tile.isEmpty).length
+let prevSearchDepth = 1
+let prevLeafCount = 0
 
-  if (numberOfEmptyTiles > 4) return 2
-  if (numberOfEmptyTiles > 1) return 3
-  return 4
+const getSearchDepth = () => {
+  if (prevLeafCount < 70000 && prevLeafCount > 5000) {
+    return prevSearchDepth
+  }
+  if (prevLeafCount < 5000) {
+    return prevSearchDepth + 1
+  }
+  if (prevLeafCount > 70000) {
+    return prevSearchDepth - 1
+  }
+  return 2
 }
 
 const getBoardAdjacencyScore = boardState => {
   const size = boardState.length ** 0.5
-  return boardState
-    .map((tile, index) => {
-      if (tile.isEmpty) return 0
-      const adjacentIndices = getAdjacentIndices(index, size)
-      return adjacentIndices
-        .map(adjacentIndex => {
-          const adjacentTile = boardState[adjacentIndex]
-          if (adjacentTile.isEmpty) {
-            return 0
-          }
-          const difference = Math.abs(adjacentTile.value - tile.value)
-
-          if (difference === 0) {
-            return adjacentTile.value
-          }
-          if (difference === adjacentTile.value || difference === tile.value) {
-            return difference / 2
-          }
-          return -difference / 2
-        })
-        .reduce((sum, score) => sum + score, 0)
-    })
-    .reduce((sum, score) => sum + score, 0)
+  return (
+    boardState
+      .map((tile, index) => {
+        let tileValue = 0
+        if (!tile.isEmpty) {
+          tileValue = tile.value
+        }
+        const adjacentIndices = getAdjacentIndices(index, size)
+        return adjacentIndices
+          .map(adjacentIndex => {
+            let adjacentTileValue = 0
+            const adjacentTile = boardState[adjacentIndex]
+            if (!adjacentTile.isEmpty) {
+              adjacentTileValue = adjacentTile.value
+            }
+            const difference = Math.abs(tileValue - adjacentTileValue)
+            return -difference
+          })
+          .reduce((sum, score) => sum + score, 0)
+      })
+      .reduce((sum, score) => sum + score, 0) / boardState.length
+  )
 }
 
 const evaluateBoard = boardState => {
   const density = getBoardDensity(boardState)
   const adjacencyScore = getBoardAdjacencyScore(boardState)
-  return density + adjacencyScore / boardState.length
+  return density * 0.75 + adjacencyScore * 0.25
 }
 
 const lookaheadAlgorithm = boardState => {
@@ -231,6 +238,8 @@ const lookaheadAlgorithm = boardState => {
   }
 
   const result = inner(searchDepth)
+  prevSearchDepth = searchDepth
+  prevLeafCount = leaves
   console.log('Search Depth: ', searchDepth, ', Actual: ', leaves)
   return result
 }

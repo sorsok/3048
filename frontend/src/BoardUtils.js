@@ -14,7 +14,7 @@ export const MOVE = 'MOVE'
 export const MERGE = 'MERGE'
 export const GENERATE = 'GENERATE'
 
-const createEmptyTiles = size => {
+const createEmptyTiles = (size) => {
   const tiles = []
   for (let index = 0; index < size ** 2; index += 1) {
     tiles.push({ value: null, isEmpty: true })
@@ -23,10 +23,10 @@ const createEmptyTiles = size => {
   return tiles
 }
 
-export const createInitialBoardState = size => {
+export const createInitialBoardState = (size) => {
   const allTiles = createEmptyTiles(size)
   const initialIndices = chooseTwoNumbersInRange(0, size ** 2)
-  initialIndices.forEach(index => {
+  initialIndices.forEach((index) => {
     allTiles[index] = { value: 2, isEmpty: false }
   })
   return allTiles
@@ -150,7 +150,7 @@ export const getMoveTilesActions = (direction, boardState) => {
   return allActions
 }
 
-export const isGameOver = boardState => {
+export const isGameOver = (boardState) => {
   const directions = [UP, DOWN, RIGHT, LEFT]
   for (let direction of directions) {
     const actions = getMoveTilesActions(direction, boardState)
@@ -167,17 +167,17 @@ export const getGenerateTileAction = (index, value) => {
   }
 }
 
-export const generateNewTile = boardState => {
+export const generateNewTile = (boardState) => {
   const value = Math.random() > 0.9 ? 4 : 2
   const index = chooseRandomEmptyTile(boardState)
   const action = getGenerateTileAction(index, value)
   applyAction(action, boardState)
 }
 
-export const deepCopyBoardState = boardState => {
+export const deepCopyBoardState = (boardState) => {
   const deepCopy = []
-  boardState.forEach(tile=>{
-    deepCopy.push({...tile})
+  boardState.forEach((tile) => {
+    deepCopy.push({ ...tile })
   })
   return deepCopy
 }
