@@ -132,3 +132,11 @@ export const getAdjacentIndices = (index, size) => {
   const indices = [index - 1, index + 1, index + size, index - size]
   return indices.filter((idx) => idx > 0 && idx < size ** 2)
 }
+
+export const isEdgeTile = (index, size)=>{
+  const inTop = index < size
+  const inBottom = index > size**2 - size
+  const inLeft = index % size === 0
+  const inRight = index + 1 % size === 0
+  return inTop && inBottom && inLeft && inRight
+}

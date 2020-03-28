@@ -1,4 +1,4 @@
-import { DOWN, getAdjacentIndices, LEFT, RIGHT, UP } from './utils'
+import { DOWN, getAdjacentIndices, isEdgeTile, LEFT, RIGHT, UP } from './utils'
 import {
   applyAction,
   applyAllActions,
@@ -74,7 +74,9 @@ const mostHighMerges = (a, b) => {
 
 export const getBoardDensity = boardState => {
   const nonEmptyTiles = boardState.filter(tile => !tile.isEmpty)
-  return nonEmptyTiles.reduce((sum, tile) => sum + tile.value, 0) / nonEmptyTiles.length
+  const averageValue =
+    nonEmptyTiles.reduce((sum, tile) => sum + tile.value, 0) / nonEmptyTiles.length
+  return averageValue
 }
 
 const getActionDensity = (actions, boardState) => {
@@ -131,6 +133,15 @@ const getSearchDepth = () => {
   return 2
 }
 
+export const getEdgeScore = boardState => {
+  const size = boardState.length ** 0.5
+  return (
+    boardState
+      .filter((tile, index) => isEdgeTile(index, size))
+      .reduce((sum, tile) => sum + tile.value, 0) / boardState.length
+  )
+}
+
 export const getBoardAdjacencyScore = boardState => {
   const size = boardState.length ** 0.5
   return (
@@ -160,7 +171,9 @@ export const getBoardAdjacencyScore = boardState => {
 const evaluateBoard = boardState => {
   const density = getBoardDensity(boardState)
   const adjacencyScore = getBoardAdjacencyScore(boardState)
-  return density * 0.65 + adjacencyScore * 0.35
+  const emptyTileFactor = boardState.filter(tile => tile.isEmpty).length / boardState.length
+  const edgeScore = getEdgeScore(boardState)
+  return emptyTileFactor * 100 + density * 0.5 + adjacencyScore * 0.1 + edgeScore * 0.1
 }
 
 const lookaheadAlgorithm = boardState => {
