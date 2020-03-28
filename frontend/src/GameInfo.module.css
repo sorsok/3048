@@ -1,6 +1,9 @@
 .container {
     display: flex;
+    align-items: center;
 }
+
+
 
 .infoBox {
     padding: 12px;
@@ -10,4 +13,20 @@
     color: white;
     margin: 12px;
     font-weight: bold;
+}
+
+.scores{
+    display: flex;
+    flex-direction: column;
+    background-color: #624673;
+    border-radius: 4px;
+    color: white;
+    padding: 12px;
+    font-size: 20px;
+    margin: 12px;
+    font-weight: bold;
+    align-items: flex-start;
+}
+
+.scoreBox{
 }

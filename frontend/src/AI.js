@@ -72,7 +72,7 @@ const mostHighMerges = (a, b) => {
   return bMaxFrequency[0] - aMaxFrequency[0]
 }
 
-const getBoardDensity = boardState => {
+export const getBoardDensity = boardState => {
   const nonEmptyTiles = boardState.filter(tile => !tile.isEmpty)
   return nonEmptyTiles.reduce((sum, tile) => sum + tile.value, 0) / nonEmptyTiles.length
 }
@@ -119,10 +119,10 @@ let prevSearchDepth = 1
 let prevLeafCount = 0
 
 const getSearchDepth = () => {
-  if (prevLeafCount < 70000 && prevLeafCount > 5000) {
+  if (prevLeafCount < 70000 && prevLeafCount > 3000) {
     return prevSearchDepth
   }
-  if (prevLeafCount < 5000) {
+  if (prevLeafCount < 3000) {
     return prevSearchDepth + 1
   }
   if (prevLeafCount > 70000) {
@@ -131,7 +131,7 @@ const getSearchDepth = () => {
   return 2
 }
 
-const getBoardAdjacencyScore = boardState => {
+export const getBoardAdjacencyScore = boardState => {
   const size = boardState.length ** 0.5
   return (
     boardState
@@ -160,7 +160,7 @@ const getBoardAdjacencyScore = boardState => {
 const evaluateBoard = boardState => {
   const density = getBoardDensity(boardState)
   const adjacencyScore = getBoardAdjacencyScore(boardState)
-  return density * 0.75 + adjacencyScore * 0.25
+  return density * 0.65 + adjacencyScore * 0.35
 }
 
 const lookaheadAlgorithm = boardState => {
