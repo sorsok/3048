@@ -173,3 +173,11 @@ export const generateNewTile = boardState => {
   const action = getGenerateTileAction(index, value)
   applyAction(action, boardState)
 }
+
+export const deepCopyBoardState = boardState => {
+  const deepCopy = []
+  boardState.forEach(tile=>{
+    deepCopy.push({...tile})
+  })
+  return deepCopy
+}

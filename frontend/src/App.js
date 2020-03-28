@@ -56,7 +56,7 @@ const App = () => {
       moveTiles(nextDirection)
       setAutomatedMoveCount(automatedMoveCount + 1)
       if (moveCount % 10 === 0) {
-        toggleAlgo()
+        // toggleAlgo()
       }
       return
     }
