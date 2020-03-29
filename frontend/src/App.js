@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import Board from './Board'
 import { useArrowKeys, useToggle } from './utils'
 import GameInfo from './GameInfo'
@@ -11,8 +11,18 @@ import {
   generateNewTile,
   getMoveTilesActions,
   isGameOver,
+  maxTileValue,
 } from './BoardUtils'
-import { getBoardAdjacencyScore, getBoardDensity, pickNextMoveDirection } from './AI'
+import {
+  evaluateBoard,
+  getAdjacentEqualTileScore,
+  getAI,
+  getBoardAdjacencyScore,
+  getBoardDensity,
+  getCornerScore,
+  getEdgeScore,
+} from './AI'
+import { runSimulation } from './Simulator'
 
 const App = () => {
   // App state
@@ -24,8 +34,9 @@ const App = () => {
   const [runningAlgo, toggleAlgo] = useToggle(false)
   const [automatedMoveCount, setAutomatedMoveCount] = useState(0)
 
+  const getNextMove = useMemo(getAI, [])
   const moveTiles = useCallback(
-    (direction) => {
+    direction => {
       const actions = getMoveTilesActions(direction, boardState)
       if (actions.length > 0) {
         setScore(score + applyAllActions(actions, boardState))
@@ -51,7 +62,7 @@ const App = () => {
   const stepAlgo = useCallback(async () => {
     if (!runningAlgo || gameOver) return
     // await new Promise(resolve => setTimeout(resolve, 0.5))
-    const nextDirection = pickNextMoveDirection(boardState)
+    const nextDirection = getNextMove(boardState).direction
     if (nextDirection) {
       moveTiles(nextDirection)
       setAutomatedMoveCount(automatedMoveCount + 1)
@@ -73,12 +84,22 @@ const App = () => {
   ])
 
   const getStats = useCallback(() => {
+    const maxValueOnBoard = maxTileValue(boardState)
     const density = getBoardDensity(boardState)
     const adjacencyScore = getBoardAdjacencyScore(boardState)
+    const emptyTileCount = boardState.filter(tile => tile.isEmpty).length
+    const emptyTileFactor = maxValueOnBoard * Math.log(emptyTileCount)
+    const edgeScore = getEdgeScore(boardState)
+    const cornerScore = getCornerScore(boardState)
+    const adjacentEqualTileScore = getAdjacentEqualTileScore(boardState)
     return {
       adjacencyScore,
       density,
-      total: density * 0.65 + adjacencyScore * 0.35,
+      emptyTileFactor,
+      edgeScore,
+      cornerScore,
+      adjacentEqualTileScore,
+      total: evaluateBoard(boardState),
     }
   }, [boardState])
 
@@ -96,6 +117,7 @@ const App = () => {
       />
       <Board size={size} boardState={boardState} gameOver={gameOver} />
       <GameControls runningAlgo={runningAlgo} toggleAlgo={toggleAlgo} resetGame={resetGame} />
+      <button onClick={runSimulation}>Run Simulation </button>
     </div>
   )
 }

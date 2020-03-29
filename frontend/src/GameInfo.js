@@ -13,6 +13,14 @@ const GameInfo = ({ score, moveCount, automatedMoveCount, stats }) => {
           stats.adjacencyScore
         )}`}</div>
         <div className={styles.scoreBox}>{`Density Score: ${Math.round(stats.density)}`}</div>
+        <div className={styles.scoreBox}>{`Empty Tile Score: ${Math.round(
+          stats.emptyTileFactor
+        )}`}</div>
+        <div className={styles.scoreBox}>{`Edge Score: ${Math.round(stats.edgeScore)}`}</div>
+        <div className={styles.scoreBox}>{`Corner Score: ${Math.round(stats.cornerScore)}`}</div>
+        <div className={styles.scoreBox}>{`Adjacent Equal Tiles Score: ${Math.round(
+          stats.adjacentEqualTileScore
+        )}`}</div>
         <div className={styles.scoreBox}>{`Total Score: ${Math.round(stats.total)}`}</div>
       </div>
     </div>

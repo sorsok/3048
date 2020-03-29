@@ -1,20 +1,34 @@
-import {
-  chooseRandomEmptyTile,
-  chooseTwoNumbersInRange,
-  DOWN,
-  getIndexTraversalOrder,
-  getNextTileIndex,
-  inSameRowOrColumn,
-  LEFT,
-  RIGHT,
-  UP,
-} from './utils'
-
 export const MOVE = 'MOVE'
 export const MERGE = 'MERGE'
 export const GENERATE = 'GENERATE'
 
-const createEmptyTiles = (size) => {
+export const UP = 'UP'
+export const DOWN = 'DOWN'
+export const RIGHT = 'RIGHT'
+export const LEFT = 'LEFT'
+
+export const getIndexTraversalOrder = (direction, size) => {
+  const indices = []
+  if (direction === UP || direction === DOWN) {
+    for (let row = 0; row < size; row++) {
+      for (let col = 0; col < size; col++) {
+        indices.push(row * size + col)
+      }
+    }
+  } else {
+    for (let col = 0; col < size; col++) {
+      for (let row = 0; row < size; row++) {
+        indices.push(row * size + col)
+      }
+    }
+  }
+  if (direction === DOWN || direction === RIGHT) {
+    indices.reverse()
+  }
+  return indices
+}
+
+const createEmptyTiles = size => {
   const tiles = []
   for (let index = 0; index < size ** 2; index += 1) {
     tiles.push({ value: null, isEmpty: true })
@@ -23,10 +37,55 @@ const createEmptyTiles = (size) => {
   return tiles
 }
 
-export const createInitialBoardState = (size) => {
+export const getNextTileIndex = (tileIndex, direction, size) => {
+  if (direction === UP) return tileIndex - size
+  if (direction === DOWN) return tileIndex + size
+  if (direction === RIGHT) return tileIndex + 1
+  if (direction === LEFT) return tileIndex - 1
+}
+
+export const indexToCoordinates = (index, size) => {
+  return [Math.floor(index / size), index % size]
+}
+
+export const inSameRowOrColumn = (index1, index2, size) => {
+  const [row1, col1] = indexToCoordinates(index1, size)
+  const [row2, col2] = indexToCoordinates(index2, size)
+  return row1 === row2 || col1 === col2
+}
+
+export const chooseRandomEmptyTile = boardState => {
+  const noEmpty = boardState.every(tile => !tile.isEmpty)
+  if (noEmpty) {
+    return -1
+  }
+  const stop = boardState.length
+  const start = 0
+  let position = Math.floor(Math.random() * (stop - start)) + start
+  let tile = boardState[position]
+  while (!tile.isEmpty) {
+    position = Math.floor(Math.random() * (stop - start)) + start
+    tile = boardState[position]
+  }
+  return position
+}
+
+export const chooseTwoNumbersInRange = (start, stop) => {
+  if (stop - start < 2) {
+    throw new Error('Range must be greater than 2')
+  }
+  const n1 = Math.floor(Math.random() * (stop - start)) + start
+  let n2 = Math.floor(Math.random() * (stop - start)) + start
+  while (n2 === n1) {
+    n2 = Math.floor(Math.random() * (stop - start)) + start
+  }
+  return [n1, n2]
+}
+
+export const createInitialBoardState = size => {
   const allTiles = createEmptyTiles(size)
   const initialIndices = chooseTwoNumbersInRange(0, size ** 2)
-  initialIndices.forEach((index) => {
+  initialIndices.forEach(index => {
     allTiles[index] = { value: 2, isEmpty: false }
   })
   return allTiles
@@ -150,7 +209,7 @@ export const getMoveTilesActions = (direction, boardState) => {
   return allActions
 }
 
-export const isGameOver = (boardState) => {
+export const isGameOver = boardState => {
   const directions = [UP, DOWN, RIGHT, LEFT]
   for (let direction of directions) {
     const actions = getMoveTilesActions(direction, boardState)
@@ -167,17 +226,39 @@ export const getGenerateTileAction = (index, value) => {
   }
 }
 
-export const generateNewTile = (boardState) => {
+export const generateNewTile = boardState => {
   const value = Math.random() > 0.9 ? 4 : 2
   const index = chooseRandomEmptyTile(boardState)
   const action = getGenerateTileAction(index, value)
   applyAction(action, boardState)
 }
 
-export const deepCopyBoardState = (boardState) => {
+export const deepCopyBoardState = boardState => {
   const deepCopy = []
-  boardState.forEach((tile) => {
+  boardState.forEach(tile => {
     deepCopy.push({ ...tile })
   })
   return deepCopy
+}
+
+export const maxTileValue = boardState =>
+  boardState
+    .filter(tile => !tile.isEmpty)
+    .reduce((maxValue, tile) => (tile.value > maxValue ? tile.value : maxValue), 0)
+
+export const getAdjacentIndices = (index, size) => {
+  const indices = [index - 1, index + 1, index + size, index - size]
+  return indices.filter(idx => idx > 0 && idx < size ** 2)
+}
+
+export const isEdgeTile = (index, size) => {
+  const inTop = index < size
+  const inBottom = index > size ** 2 - size
+  const inLeft = index % size === 0
+  const inRight = index + (1 % size) === 0
+  return inTop || inBottom || inLeft || inRight
+}
+
+export const isCornerTile = (index, size) => {
+  return index === 0 || index === size - 1 || index === size ** 2 - 1 || index === size ** 2 - size
 }
