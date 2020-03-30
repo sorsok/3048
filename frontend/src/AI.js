@@ -136,7 +136,7 @@ const getEstimatedLeafCount = (boardState, searchDepth) => {
 
 const getSearchDepth = boardState => {
   // return 2
-  const TIME_PER_LEAF = 0.007
+  const TIME_PER_LEAF = 0.01
   const ALLOWED_TIME = 200
   for (let i = 2; i < 5; i++) {
     const currentLeafCount = getEstimatedLeafCount(boardState, i)
@@ -253,52 +253,102 @@ const getAllGenerateTileActions = (boardState, newValue) => {
 
 export const getAI = weights => {
   const lookaheadAlgorithm = boardState => {
+    const startTime = performance.now()
+    const probabilities = { 2: 0.9, 4: 0.1 }
     let leaves = 0
-    const searchDepth = getSearchDepth(boardState)
-    const inner = depth => {
-      if (depth === 0) {
-        leaves += 1
-        const score = evaluateBoard(boardState, weights)
-        return { score }
+    const initialSearchDepth = getSearchDepth(boardState)
+    const directions = [UP, LEFT, RIGHT, DOWN]
+    const validOptions = []
+    const queue = [
+      {
+        actions: [],
+        direction: null,
+        searchDepth: initialSearchDepth,
+        parentNode: null,
+        generatedValue: 1,
+      },
+    ]
+    while (queue.length > 0) {
+      const currentNode = queue.pop()
+      const { actions, searchDepth, parentNode, generatedValue } = currentNode
+      const allActions = actions.slice()
+      let tempNode = parentNode
+      while (tempNode) {
+        allActions.unshift(...tempNode.actions)
+        tempNode = tempNode.parentNode
       }
-      const directions = [UP, LEFT, RIGHT, DOWN]
-      const options = []
-      directions.forEach(direction => {
-        const actions = getMoveTilesActions(direction, boardState)
-        if (actions.length === 0) {
-          options.push({ direction, score: 0 })
-          return
+      applyAllActions(allActions, boardState)
+      if (searchDepth === 0 && generatedValue) {
+        //bubble up scores
+        leaves += 1
+        const weightedScore = evaluateBoard(boardState, weights) * probabilities[generatedValue]
+        let parentOption = parentNode
+        while (parentOption.searchDepth !== initialSearchDepth || parentOption.generatedValue) {
+          parentOption = parentOption.parentNode
         }
-        applyAllActions(actions, boardState)
+        parentOption.childScores += weightedScore
+        parentOption.childrenCount += 1
+      } else if (generatedValue) {
+        // generate directions
+        directions.forEach(nextDirection => {
+          const newActions = getMoveTilesActions(nextDirection, boardState)
+          if (newActions.length === 0) {
+            return
+          }
+          const newNode = {
+            actions: newActions,
+            direction: nextDirection,
+            searchDepth,
+            parentNode: currentNode,
+            generatedValue: null,
+            childScores: 0,
+            childrenCount: 0,
+          }
+          queue.push(newNode)
+          if (searchDepth === initialSearchDepth) {
+            validOptions.push(newNode)
+          }
+        })
+      } else {
+        //generate 2s and 4s
         const twoActions = getAllGenerateTileActions(boardState, 2)
-        const twoScores = []
         const fourActions = getAllGenerateTileActions(boardState, 4)
-        const fourScores = []
         twoActions.forEach(action => {
-          applyAction(action, boardState)
-          const nextMove = inner(depth - 1)
-          reverseAction(action, boardState)
-          twoScores.push(nextMove.score)
+          queue.push({
+            actions: [action],
+            searchDepth: searchDepth - 1,
+            parentNode: currentNode,
+            generatedValue: 2,
+          })
         })
         fourActions.forEach(action => {
-          applyAction(action, boardState)
-          const nextMove = inner(depth - 1)
-          reverseAction(action, boardState)
-          fourScores.push(nextMove.score)
+          queue.push({
+            actions: [action],
+            searchDepth: searchDepth - 1,
+            parentNode: currentNode,
+            generatedValue: 2,
+          })
         })
-        reverseAllActions(actions, boardState)
-        const averageTwoScore = twoScores.reduce((sum, score) => sum + score, 0) / twoScores.length
-        const averageFourScore =
-          fourScores.reduce((sum, score) => sum + score, 0) / fourScores.length
-        options.push({ score: 0.9 * averageTwoScore + 0.1 * averageFourScore, direction })
-      })
-      options.sort((a, b) => b.score - a.score)
-      return options[0]
+      }
+      reverseAllActions(allActions, boardState)
     }
+    validOptions.forEach(option => {
+      option.score = option.childScores / option.childrenCount
+    })
 
-    const result = inner(searchDepth)
-    console.log('Search Depth: ', searchDepth, ', Boards Checked: ', leaves)
-    return result
+    validOptions.sort((a, b) => b.score - a.score)
+    const endTime = performance.now()
+    console.log(
+      'Search Depth: ',
+      initialSearchDepth,
+      ', Boards Checked: ',
+      leaves,
+      ', Performance Time',
+      endTime - startTime,
+      ', Time Per 1000 Boards',
+      ((endTime - startTime) / leaves) * 1000
+    )
+    return validOptions[0]
   }
   return lookaheadAlgorithm
 }
