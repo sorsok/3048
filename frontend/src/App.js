@@ -38,6 +38,8 @@ const App = () => {
       getAI({
         emptyTileFactor: 1,
         density: 1.5,
+        cornerScore: 1,
+        edgeScore: 1,
       }),
     []
   )

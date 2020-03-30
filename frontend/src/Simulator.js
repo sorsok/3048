@@ -22,7 +22,7 @@ const moveTiles = (direction, boardState) => {
   return 0
 }
 
-const simulateOneGame = weights => {
+const simulateOneGame = (weights) => {
   const size = 4
   const boardState = createInitialBoardState(size)
   let score = 0
@@ -42,7 +42,7 @@ const simulateOneGame = weights => {
   return { score, moveCount, maxValue }
 }
 
-const testWeight = weight => {
+const testWeight = (weight) => {
   const scores = []
   const moveCounts = []
   const maxValues = []
@@ -75,7 +75,7 @@ const testWeight = weight => {
 export const runSimulation = () => {
   if (isMainThread) {
     WEIGHTS.map(
-      weight =>
+      (weight) =>
         new Worker('/Users/minasorsok/Documents/PycharmProjects/3048/frontend/src/Simulator.js', {
           workerData: { weight },
         })
