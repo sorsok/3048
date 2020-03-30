@@ -131,7 +131,7 @@ const smarterAlgorithm = boardState => {
 }
 
 const getSearchDepth = (prevSearchDepth, prevLeafCount) => {
-  return 2
+  // return 2
   if (prevLeafCount < 70000 && prevLeafCount > 3000) {
     return prevSearchDepth
   }
@@ -223,6 +223,7 @@ export const evaluateBoard = (boardState, weights) => {
     edgeScore: getEdgeScore(boardState),
     cornerScore: getCornerScore(boardState),
     adjacentEqualTileScore: getAdjacentEqualTileScore(boardState),
+    random: Math.random(),
   }
   return Object.keys(weights).reduce((sum, metric) => scores[metric] * weights[metric], 0)
   // return emptyTileFactor + density * 1 + adjacencyScore * 0.1 + edgeScore * 0.1 + cornerScore * 2
@@ -231,7 +232,7 @@ export const evaluateBoard = (boardState, weights) => {
   // return edgeScore * 2 + cornerScore * 3 + density * 1 + adjacentEqualTileScore * 0
 }
 
-export const getAI = (weights) => {
+export const getAI = weights => {
   let prevSearchDepth = 1
   let prevLeafCount = 0
   const lookaheadAlgorithm = boardState => {

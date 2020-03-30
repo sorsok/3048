@@ -40,7 +40,7 @@ export const useKeyPress = (targetKey, onKeyDownHandler) => {
   return keyPressed
 }
 
-export const useArrowKeys = onKeyPress => {
+export const useArrowKeys = (onKeyPress) => {
   const onKeyPressUp = () => onKeyPress(UP)
   const onKeyPressDown = () => onKeyPress(DOWN)
   const onKeyPressRight = () => onKeyPress(RIGHT)
@@ -52,7 +52,7 @@ export const useArrowKeys = onKeyPress => {
   useKeyPress('ArrowLeft', onKeyPressLeft)
 }
 
-export const useToggle = initialState => {
+export const useToggle = (initialState) => {
   const [state, setState] = useState(initialState)
   const toggleState = useCallback(() => setState(!state), [setState, state])
   return [state, toggleState]

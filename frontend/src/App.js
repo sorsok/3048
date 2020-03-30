@@ -22,7 +22,6 @@ import {
   getCornerScore,
   getEdgeScore,
 } from './AI'
-import { runSimulation } from './Simulator'
 
 const App = () => {
   // App state
@@ -34,7 +33,14 @@ const App = () => {
   const [runningAlgo, toggleAlgo] = useToggle(false)
   const [automatedMoveCount, setAutomatedMoveCount] = useState(0)
 
-  const getNextMove = useMemo(getAI, [])
+  const getNextMove = useMemo(
+    () =>
+      getAI({
+        emptyTileFactor: 1,
+        density: 1.5,
+      }),
+    []
+  )
   const moveTiles = useCallback(
     direction => {
       const actions = getMoveTilesActions(direction, boardState)
@@ -82,26 +88,26 @@ const App = () => {
     gameOver,
     moveCount,
   ])
-
-  const getStats = useCallback(() => {
-    const maxValueOnBoard = maxTileValue(boardState)
-    const density = getBoardDensity(boardState)
-    const adjacencyScore = getBoardAdjacencyScore(boardState)
-    const emptyTileCount = boardState.filter(tile => tile.isEmpty).length
-    const emptyTileFactor = maxValueOnBoard * Math.log(emptyTileCount)
-    const edgeScore = getEdgeScore(boardState)
-    const cornerScore = getCornerScore(boardState)
-    const adjacentEqualTileScore = getAdjacentEqualTileScore(boardState)
-    return {
-      adjacencyScore,
-      density,
-      emptyTileFactor,
-      edgeScore,
-      cornerScore,
-      adjacentEqualTileScore,
-      total: evaluateBoard(boardState),
-    }
-  }, [boardState])
+  //
+  // const getStats = useCallback(() => {
+  //   const maxValueOnBoard = maxTileValue(boardState)
+  //   const density = getBoardDensity(boardState)
+  //   const adjacencyScore = getBoardAdjacencyScore(boardState)
+  //   const emptyTileCount = boardState.filter(tile => tile.isEmpty).length
+  //   const emptyTileFactor = maxValueOnBoard * Math.log(emptyTileCount)
+  //   const edgeScore = getEdgeScore(boardState)
+  //   const cornerScore = getCornerScore(boardState)
+  //   const adjacentEqualTileScore = getAdjacentEqualTileScore(boardState)
+  //   return {
+  //     adjacencyScore,
+  //     density,
+  //     emptyTileFactor,
+  //     edgeScore,
+  //     cornerScore,
+  //     adjacentEqualTileScore,
+  //     total: evaluateBoard(boardState),
+  //   }
+  // }, [boardState])
 
   useEffect(() => {
     stepAlgo()
@@ -113,11 +119,11 @@ const App = () => {
         score={score}
         moveCount={moveCount}
         automatedMoveCount={automatedMoveCount}
-        stats={getStats()}
+        // stats={getStats()}
       />
       <Board size={size} boardState={boardState} gameOver={gameOver} />
       <GameControls runningAlgo={runningAlgo} toggleAlgo={toggleAlgo} resetGame={resetGame} />
-      <button onClick={runSimulation}>Run Simulation </button>
+      {/*<button onClick={runSimulation}>Run Simulation </button>*/}
     </div>
   )
 }
