@@ -241,15 +241,7 @@ export const evaluateBoard = (boardState, weights) => {
   return Object.keys(weights).reduce((sum, metric) => scores[metric] * weights[metric], 0)
 }
 
-const getAllGenerateTileActions = (boardState, newValue) => {
-  const generateTileActions = []
-  boardState.forEach((tile, index) => {
-    if (tile.isEmpty) {
-      generateTileActions.push(getGenerateTileAction(index, newValue))
-    }
-  })
-  return generateTileActions
-}
+
 
 export const getAI = weights => {
   const lookaheadAlgorithm = boardState => {
@@ -266,6 +258,7 @@ export const getAI = weights => {
         searchDepth: initialSearchDepth,
         parentNode: null,
         generatedValue: 1,
+        childrenNodes: [],
       },
     ]
     while (queue.length > 0) {

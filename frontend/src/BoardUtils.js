@@ -7,6 +7,8 @@ export const DOWN = 'DOWN'
 export const RIGHT = 'RIGHT'
 export const LEFT = 'LEFT'
 
+export const DIRECTIONS = [UP, LEFT, RIGHT, DOWN]
+
 export const getIndexTraversalOrder = (direction, size) => {
   const indices = []
   if (direction === UP || direction === DOWN) {
@@ -274,4 +276,14 @@ export const getEmptyTileCount = boardState => {
     if (tile.isEmpty) emptyTileCount += 1
   })
   return emptyTileCount
+}
+
+export const getAllGenerateTileActions = (boardState, newValue) => {
+  const generateTileActions = []
+  boardState.forEach((tile, index) => {
+    if (tile.isEmpty) {
+      generateTileActions.push(getGenerateTileAction(index, newValue))
+    }
+  })
+  return generateTileActions
 }
