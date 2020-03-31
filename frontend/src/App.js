@@ -36,9 +36,10 @@ const App = () => {
   const getNextMove = useMemo(
     () =>
       getAI({
-        emptyTileFactor: 1,
-        density: 1.5,
-        cornerScore: 1,
+        // emptyTileFactor: 1,
+        density: 15,
+        adjacentEqualTileScore: 0.1,
+        cornerScore: 1.5,
         edgeScore: 1,
       }),
     []

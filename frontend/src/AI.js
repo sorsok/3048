@@ -83,8 +83,12 @@ const mostHighMerges = (a, b) => {
 export const getBoardDensity = boardState => {
   const maxValue = maxTileValue(boardState)
   return (
-    boardState.reduce((sum, tile) => (tile.isEmpty ? sum + maxValue : sum + tile.value), 0) /
-    boardState.length
+    (boardState.reduce(
+      (sum, tile) => (tile.isEmpty ? sum + maxValue ** 2 : sum + tile.value ** 2),
+      0
+    ) /
+      boardState.length) **
+    0.5
   )
 }
 
@@ -128,16 +132,15 @@ const smarterAlgorithm = boardState => {
 
 const getEstimatedLeafCount = (boardState, searchDepth) => {
   let emptyTileCount = getEmptyTileCount(boardState)
-  if (emptyTileCount < 1) {
-    emptyTileCount = 1
+  if (emptyTileCount < 5) {
+    emptyTileCount = 0.125 * emptyTileCount ** 2 + 2
   }
   return (4 * 2 * emptyTileCount) ** searchDepth
 }
 
 const getSearchDepth = boardState => {
-  // return 2
-  const TIME_PER_LEAF = 0.01
-  const ALLOWED_TIME = 200
+  const TIME_PER_LEAF = 0.008
+  const ALLOWED_TIME = 300
   for (let i = 2; i < 5; i++) {
     const currentLeafCount = getEstimatedLeafCount(boardState, i)
     const currentEstimate = currentLeafCount * TIME_PER_LEAF
@@ -153,28 +156,52 @@ const getSearchDepth = boardState => {
 
 export const getEdgeScore = boardState => {
   const size = boardState.length ** 0.5
-  let sumOfSquares = 0
-  let edgeCount = 0
+  // let sumOfSquares = 0
+  // let edgeCount = 0
+  // boardState.forEach((tile, index) => {
+  //   if (isEdgeTile(index, size) && !tile.isEmpty) {
+  //     sumOfSquares += tile.value ** 2
+  //     edgeCount += 1
+  //   }
+  // })
+  // return (sumOfSquares / edgeCount) ** 0.5
+
+  let top = 0
+  let bottom = 0
+  let left = 0
+  let right = 0
   boardState.forEach((tile, index) => {
-    if (isEdgeTile(index, size)) {
-      sumOfSquares += tile.value ** 2
-      edgeCount += 1
+    if (!tile.isEmpty) {
+      const inTop = index < size
+      const inBottom = index > size ** 2 - size
+      const inLeft = index % size === 0
+      const inRight = index + (1 % size) === 0
+      const value = tile.value ** 2
+      if (inTop) top += value
+      if (inBottom) bottom += value
+      if (inLeft) left += value
+      if (inRight) right += value
     }
   })
-  return (sumOfSquares / edgeCount) ** 0.5
+  const edges = [top, bottom, left, right]
+  edges.sort((a, b) => b - a)
+  return (edges[0] / size) ** 0.5
 }
 
 export const getCornerScore = boardState => {
   const size = boardState.length ** 0.5
   let sumOfSquares = 0
   let cornerCount = 0
+  let maxValue = 0
   boardState.forEach((tile, index) => {
     if (isCornerTile(index, size)) {
       sumOfSquares += tile.value ** 2
       cornerCount += 1
+      maxValue = tile.value > maxValue ? tile.value : maxValue
     }
   })
-  return (sumOfSquares / cornerCount) ** 0.5
+  // return (sumOfSquares / cornerCount) ** 0.5
+  return maxValue ** 2
 }
 
 export const getBoardAdjacencyScore = boardState => {
@@ -222,7 +249,7 @@ export const getAdjacentEqualTileScore = boardState => {
       })
     }
   })
-  return (sumOfSquares / boardState.length) ** 0.5
+  return (sumOfSquares / (boardState.length * 2)) ** 0.5
 }
 
 export const evaluateBoard = (boardState, weights) => {
@@ -253,102 +280,52 @@ const getAllGenerateTileActions = (boardState, newValue) => {
 
 export const getAI = weights => {
   const lookaheadAlgorithm = boardState => {
-    const startTime = performance.now()
-    const probabilities = { 2: 0.9, 4: 0.1 }
     let leaves = 0
-    const initialSearchDepth = getSearchDepth(boardState)
-    const directions = [UP, LEFT, RIGHT, DOWN]
-    const validOptions = []
-    const queue = [
-      {
-        actions: [],
-        direction: null,
-        searchDepth: initialSearchDepth,
-        parentNode: null,
-        generatedValue: 1,
-      },
-    ]
-    while (queue.length > 0) {
-      const currentNode = queue.pop()
-      const { actions, searchDepth, parentNode, generatedValue } = currentNode
-      const allActions = actions.slice()
-      let tempNode = parentNode
-      while (tempNode) {
-        allActions.unshift(...tempNode.actions)
-        tempNode = tempNode.parentNode
-      }
-      applyAllActions(allActions, boardState)
-      if (searchDepth === 0 && generatedValue) {
-        //bubble up scores
+    const searchDepth = getSearchDepth(boardState)
+    const inner = depth => {
+      if (depth === 0) {
         leaves += 1
-        const weightedScore = evaluateBoard(boardState, weights) * probabilities[generatedValue]
-        let parentOption = parentNode
-        while (parentOption.searchDepth !== initialSearchDepth || parentOption.generatedValue) {
-          parentOption = parentOption.parentNode
+        const score = evaluateBoard(boardState, weights)
+        return { score }
+      }
+      const directions = [UP, LEFT, RIGHT, DOWN]
+      const options = []
+      directions.forEach(direction => {
+        const actions = getMoveTilesActions(direction, boardState)
+        if (actions.length === 0) {
+          options.push({ direction, score: 0 })
+          return
         }
-        parentOption.childScores += weightedScore
-        parentOption.childrenCount += 1
-      } else if (generatedValue) {
-        // generate directions
-        directions.forEach(nextDirection => {
-          const newActions = getMoveTilesActions(nextDirection, boardState)
-          if (newActions.length === 0) {
-            return
-          }
-          const newNode = {
-            actions: newActions,
-            direction: nextDirection,
-            searchDepth,
-            parentNode: currentNode,
-            generatedValue: null,
-            childScores: 0,
-            childrenCount: 0,
-          }
-          queue.push(newNode)
-          if (searchDepth === initialSearchDepth) {
-            validOptions.push(newNode)
-          }
-        })
-      } else {
-        //generate 2s and 4s
+        applyAllActions(actions, boardState)
         const twoActions = getAllGenerateTileActions(boardState, 2)
+        const twoScores = []
         const fourActions = getAllGenerateTileActions(boardState, 4)
+        const fourScores = []
         twoActions.forEach(action => {
-          queue.push({
-            actions: [action],
-            searchDepth: searchDepth - 1,
-            parentNode: currentNode,
-            generatedValue: 2,
-          })
+          applyAction(action, boardState)
+          const nextMove = inner(depth - 1)
+          reverseAction(action, boardState)
+          twoScores.push(nextMove.score)
         })
         fourActions.forEach(action => {
-          queue.push({
-            actions: [action],
-            searchDepth: searchDepth - 1,
-            parentNode: currentNode,
-            generatedValue: 2,
-          })
+          applyAction(action, boardState)
+          const nextMove = inner(depth - 1)
+          reverseAction(action, boardState)
+          fourScores.push(nextMove.score)
         })
-      }
-      reverseAllActions(allActions, boardState)
+        reverseAllActions(actions, boardState)
+        const averageTwoScore = twoScores.reduce((sum, score) => sum + score, 0) / twoScores.length
+        const averageFourScore =
+          fourScores.reduce((sum, score) => sum + score, 0) / fourScores.length
+        options.push({ score: 0.9 * averageTwoScore + 0.1 * averageFourScore, direction })
+      })
+      options.sort((a, b) => b.score - a.score)
+      return options[0]
     }
-    validOptions.forEach(option => {
-      option.score = option.childScores / option.childrenCount
-    })
 
-    validOptions.sort((a, b) => b.score - a.score)
-    const endTime = performance.now()
-    console.log(
-      'Search Depth: ',
-      initialSearchDepth,
-      ', Boards Checked: ',
-      leaves,
-      ', Performance Time',
-      endTime - startTime,
-      ', Time Per 1000 Boards',
-      ((endTime - startTime) / leaves) * 1000
-    )
-    return validOptions[0]
+    const result = inner(searchDepth)
+    console.log('Search Depth: ', searchDepth, ', Boards Checked: ', leaves)
+    return result
   }
   return lookaheadAlgorithm
 }
