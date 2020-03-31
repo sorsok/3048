@@ -849,14 +849,6 @@
     core-js-pure "^3.0.0"
     regenerator-runtime "^0.13.4"
 
-"@babel/runtime-corejs3@^7.8.3":
-  version "7.9.2"
-  resolved "https://registry.yarnpkg.com/@babel/runtime-corejs3/-/runtime-corejs3-7.9.2.tgz#26fe4aa77e9f1ecef9b776559bbb8e84d34284b7"
-  integrity sha512-HHxmgxbIzOfFlZ+tdeRKtaxWOMUoCG5Mu3wKeUmOxjYrwb3AAHgnmtCUbPPK11/raIWLIBK250t8E2BPO0p7jA==
-  dependencies:
-    core-js-pure "^3.0.0"
-    regenerator-runtime "^0.13.4"
-
 "@babel/runtime@7.8.4", "@babel/runtime@^7.0.0", "@babel/runtime@^7.3.4", "@babel/runtime@^7.4.5", "@babel/runtime@^7.6.3", "@babel/runtime@^7.7.2":
   version "7.8.4"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.8.4.tgz#d79f5a2040f7caa24d53e563aad49cbc05581308"
@@ -3928,24 +3920,6 @@ eslint-plugin-react@7.18.0:
     prop-types "^15.7.2"
     resolve "^1.14.2"
 
-eslint-plugin-react@^7.19.0:
-  version "7.19.0"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-react/-/eslint-plugin-react-7.19.0.tgz#6d08f9673628aa69c5559d33489e855d83551666"
-  integrity sha512-SPT8j72CGuAP+JFbT0sJHOB80TX/pu44gQ4vXH/cq+hQTiY2PuZ6IHkqXJV6x1b28GDdo1lbInjKUrrdUf0LOQ==
-  dependencies:
-    array-includes "^3.1.1"
-    doctrine "^2.1.0"
-    has "^1.0.3"
-    jsx-ast-utils "^2.2.3"
-    object.entries "^1.1.1"
-    object.fromentries "^2.0.2"
-    object.values "^1.1.1"
-    prop-types "^15.7.2"
-    resolve "^1.15.1"
-    semver "^6.3.0"
-    string.prototype.matchall "^4.0.2"
-    xregexp "^4.3.0"
-
 eslint-scope@^4.0.3:
   version "4.0.3"
   resolved "https://registry.yarnpkg.com/eslint-scope/-/eslint-scope-4.0.3.tgz#ca03833310f6889a3264781aa82e63eb9cfe7848"
@@ -4554,11 +4528,6 @@ fs.realpath@^1.0.0:
   resolved "https://registry.yarnpkg.com/fs.realpath/-/fs.realpath-1.0.0.tgz#1504ad2523158caa40db4a2787cb01411994ea4f"
   integrity sha1-FQStJSMVjKpA20onh8sBQRmU6k8=
 
-fsevents@2.1.2, fsevents@~2.1.2:
-  version "2.1.2"
-  resolved "https://registry.yarnpkg.com/fsevents/-/fsevents-2.1.2.tgz#4c0a1fb34bc68e543b4b82a9ec392bfbda840805"
-  integrity sha512-R4wDiBwZ0KzpgOWetKDug1FZcYhqYnUYKtfZYt4mD5SBz76q0KR4Q9o7GIPamsVPGmW3EYPPJ0dOOjvx32ldZA==
-
 fsevents@^1.2.7:
   version "1.2.11"
   resolved "https://registry.yarnpkg.com/fsevents/-/fsevents-1.2.11.tgz#67bf57f4758f02ede88fb2a1712fef4d15358be3"
@@ -4566,6 +4535,11 @@ fsevents@^1.2.7:
   dependencies:
     bindings "^1.5.0"
     nan "^2.12.1"
+
+fsevents@~2.1.2:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/fsevents/-/fsevents-2.1.2.tgz#4c0a1fb34bc68e543b4b82a9ec392bfbda840805"
+  integrity sha512-R4wDiBwZ0KzpgOWetKDug1FZcYhqYnUYKtfZYt4mD5SBz76q0KR4Q9o7GIPamsVPGmW3EYPPJ0dOOjvx32ldZA==
 
 function-bind@^1.1.1:
   version "1.1.1"
@@ -5158,15 +5132,6 @@ internal-ip@^4.3.0:
   dependencies:
     default-gateway "^4.2.0"
     ipaddr.js "^1.9.0"
-
-internal-slot@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/internal-slot/-/internal-slot-1.0.2.tgz#9c2e9fb3cd8e5e4256c6f45fe310067fcfa378a3"
-  integrity sha512-2cQNfwhAfJIkU4KZPkDI+Gj5yNNnbqi40W9Gge6dfnk4TocEVm00B3bdiL+JINrbGJil2TeHvM4rETGzk/f/0g==
-  dependencies:
-    es-abstract "^1.17.0-next.1"
-    has "^1.0.3"
-    side-channel "^1.0.2"
 
 invariant@^2.2.2, invariant@^2.2.4:
   version "2.2.4"
@@ -8424,66 +8389,6 @@ react-is@^16.8.1, react-is@^16.8.4:
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.12.0.tgz#2cc0fe0fba742d97fd527c42a13bec4eeb06241c"
   integrity sha512-rPCkf/mWBtKc97aLL9/txD8DZdemK0vkA3JMLShjlJB3Pj3s+lpf1KaBzMfQrAmhMQB0n1cU/SUGgKKBCe837Q==
 
-react-scripts@3.4.0:
-  version "3.4.0"
-  resolved "https://registry.yarnpkg.com/react-scripts/-/react-scripts-3.4.0.tgz#f413680f0b5b937c8879ba1ffdae9b8c5b364bf5"
-  integrity sha512-pBqaAroFoHnFAkuX+uSK9Th1uEh2GYdGY2IG1I9/7HmuEf+ls3lLCk1p2GFYRSrLMz6ieQR/SyN6TLIGK3hKRg==
-  dependencies:
-    "@babel/core" "7.8.4"
-    "@svgr/webpack" "4.3.3"
-    "@typescript-eslint/eslint-plugin" "^2.10.0"
-    "@typescript-eslint/parser" "^2.10.0"
-    babel-eslint "10.0.3"
-    babel-jest "^24.9.0"
-    babel-loader "8.0.6"
-    babel-plugin-named-asset-import "^0.3.6"
-    babel-preset-react-app "^9.1.1"
-    camelcase "^5.3.1"
-    case-sensitive-paths-webpack-plugin "2.3.0"
-    css-loader "3.4.2"
-    dotenv "8.2.0"
-    dotenv-expand "5.1.0"
-    eslint "^6.6.0"
-    eslint-config-react-app "^5.2.0"
-    eslint-loader "3.0.3"
-    eslint-plugin-flowtype "4.6.0"
-    eslint-plugin-import "2.20.0"
-    eslint-plugin-jsx-a11y "6.2.3"
-    eslint-plugin-react "7.18.0"
-    eslint-plugin-react-hooks "^1.6.1"
-    file-loader "4.3.0"
-    fs-extra "^8.1.0"
-    html-webpack-plugin "4.0.0-beta.11"
-    identity-obj-proxy "3.0.0"
-    jest "24.9.0"
-    jest-environment-jsdom-fourteen "1.0.1"
-    jest-resolve "24.9.0"
-    jest-watch-typeahead "0.4.2"
-    mini-css-extract-plugin "0.9.0"
-    optimize-css-assets-webpack-plugin "5.0.3"
-    pnp-webpack-plugin "1.6.0"
-    postcss-flexbugs-fixes "4.1.0"
-    postcss-loader "3.0.0"
-    postcss-normalize "8.0.1"
-    postcss-preset-env "6.7.0"
-    postcss-safe-parser "4.0.1"
-    react-app-polyfill "^1.0.6"
-    react-dev-utils "^10.2.0"
-    resolve "1.15.0"
-    resolve-url-loader "3.1.1"
-    sass-loader "8.0.2"
-    semver "6.3.0"
-    style-loader "0.23.1"
-    terser-webpack-plugin "2.3.4"
-    ts-pnp "1.1.5"
-    url-loader "2.3.0"
-    webpack "4.41.5"
-    webpack-dev-server "3.10.2"
-    webpack-manifest-plugin "2.2.0"
-    workbox-webpack-plugin "4.3.1"
-  optionalDependencies:
-    fsevents "2.1.2"
-
 react@^16.13.1:
   version "16.13.1"
   resolved "https://registry.yarnpkg.com/react/-/react-16.13.1.tgz#2e818822f1a9743122c063d6410d85c1e3afe48e"
@@ -8634,7 +8539,7 @@ regex-parser@2.2.10:
   resolved "https://registry.yarnpkg.com/regex-parser/-/regex-parser-2.2.10.tgz#9e66a8f73d89a107616e63b39d4deddfee912b37"
   integrity sha512-8t6074A68gHfU8Neftl0Le6KTDwfGAj7IyjPIMSfikI2wJUTHDMaIq42bUsfVnj8mhx0R+45rdUXHGpN164avA==
 
-regexp.prototype.flags@^1.2.0, regexp.prototype.flags@^1.3.0:
+regexp.prototype.flags@^1.2.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/regexp.prototype.flags/-/regexp.prototype.flags-1.3.0.tgz#7aba89b3c13a64509dabcf3ca8d9fbb9bdf5cb75"
   integrity sha512-2+Q0C5g951OlYlJz6yu5/M33IcsESLlLfsyIaLJaG4FA2r4yP8MvVMJUUP/fVBkSpbbbZlS5gynbEWLipiiXiQ==
@@ -8819,7 +8724,7 @@ resolve@1.15.0:
   dependencies:
     path-parse "^1.0.6"
 
-resolve@^1.10.0, resolve@^1.12.0, resolve@^1.13.1, resolve@^1.14.2, resolve@^1.15.1, resolve@^1.3.2, resolve@^1.8.1:
+resolve@^1.10.0, resolve@^1.12.0, resolve@^1.13.1, resolve@^1.14.2, resolve@^1.3.2, resolve@^1.8.1:
   version "1.15.1"
   resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.15.1.tgz#27bdcdeffeaf2d6244b95bb0f9f4b4653451f3e8"
   integrity sha512-84oo6ZTtoTUpjgNEr5SJyzQhzL72gaRodsSfyxC/AXRvwu0Yse9H8eF9IpGo7b8YetZhlI6v7ZQ6bKBFV/6S7w==
@@ -9168,14 +9073,6 @@ shellwords@^0.1.1:
   resolved "https://registry.yarnpkg.com/shellwords/-/shellwords-0.1.1.tgz#d6b9181c1a48d397324c84871efbcfc73fc0654b"
   integrity sha512-vFwSUfQvqybiICwZY5+DAWIPLKsWO31Q91JSKl3UYv+K5c2QRPzn0qzec6QPu1Qc9eHYItiP3NdJqNVqetYAww==
 
-side-channel@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/side-channel/-/side-channel-1.0.2.tgz#df5d1abadb4e4bf4af1cd8852bf132d2f7876947"
-  integrity sha512-7rL9YlPHg7Ancea1S96Pa8/QWb4BtXL/TZvS6B8XFetGBeuhAsfmUspK6DokBeZ64+Kj9TCNRD/30pVz1BvQNA==
-  dependencies:
-    es-abstract "^1.17.0-next.1"
-    object-inspect "^1.7.0"
-
 signal-exit@^3.0.0, signal-exit@^3.0.2:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/signal-exit/-/signal-exit-3.0.2.tgz#b5fdc08f1287ea1178628e415e25132b73646c6d"
@@ -9519,18 +9416,6 @@ string-width@^4.1.0:
     emoji-regex "^8.0.0"
     is-fullwidth-code-point "^3.0.0"
     strip-ansi "^6.0.0"
-
-string.prototype.matchall@^4.0.2:
-  version "4.0.2"
-  resolved "https://registry.yarnpkg.com/string.prototype.matchall/-/string.prototype.matchall-4.0.2.tgz#48bb510326fb9fdeb6a33ceaa81a6ea04ef7648e"
-  integrity sha512-N/jp6O5fMf9os0JU3E72Qhf590RSRZU/ungsL/qJUYVTNv7hTG0P/dbPjxINVN9jpscu3nzYwKESU3P3RY5tOg==
-  dependencies:
-    define-properties "^1.1.3"
-    es-abstract "^1.17.0"
-    has-symbols "^1.0.1"
-    internal-slot "^1.0.2"
-    regexp.prototype.flags "^1.3.0"
-    side-channel "^1.0.2"
 
 string.prototype.trimleft@^2.1.1:
   version "2.1.1"
@@ -10606,13 +10491,6 @@ xmlchars@^2.1.1:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/xmlchars/-/xmlchars-2.2.0.tgz#060fe1bcb7f9c76fe2a17db86a9bc3ab894210cb"
   integrity sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw==
-
-xregexp@^4.3.0:
-  version "4.3.0"
-  resolved "https://registry.yarnpkg.com/xregexp/-/xregexp-4.3.0.tgz#7e92e73d9174a99a59743f67a4ce879a04b5ae50"
-  integrity sha512-7jXDIFXh5yJ/orPn4SXjuVrWWoi4Cr8jfV1eHv9CixKSbU+jY4mxfrBwAuDvupPNKpMUY+FeIqsVw/JLT9+B8g==
-  dependencies:
-    "@babel/runtime-corejs3" "^7.8.3"
 
 xtend@^4.0.0, xtend@~4.0.1:
   version "4.0.2"
