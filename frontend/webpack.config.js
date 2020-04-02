@@ -1,5 +1,6 @@
 const webpack = require('webpack')
 const path = require('path')
+const WorkerPlugin = require('worker-plugin')
 
 const config = {
   entry: ['react-hot-loader/patch', './src/index.js'],
@@ -40,6 +41,7 @@ const config = {
   devServer: {
     contentBase: './dist',
   },
+  plugins: [new WorkerPlugin()],
 }
 
 module.exports = config

@@ -14,9 +14,11 @@
   },
   "dependencies": {
     "classnames": "^2.2.6",
+    "comlink": "^4.2.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
-    "react-hot-loader": "^4.12.20"
+    "react-hot-loader": "^4.12.20",
+    "worker-plugin": "^4.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.9.0",

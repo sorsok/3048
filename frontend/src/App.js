@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { hot } from 'react-hot-loader/root'
 import Board from './Board'
-import { useArrowKeys, useToggle } from './utils'
+import { useAlgo, useArrowKeys, useToggle } from './utils'
 import GameInfo from './GameInfo'
 import GameControls from './GameControls'
 
@@ -13,17 +13,8 @@ import {
   generateNewTile,
   getMoveTilesActions,
   isGameOver,
-  maxTileValue,
 } from './BoardUtils'
-import {
-  evaluateBoard,
-  getAdjacentEqualTileScore,
-  getAI,
-  getBoardAdjacencyScore,
-  getBoardDensity,
-  getCornerScore,
-  getEdgeScore,
-} from './AI'
+
 
 const App = () => {
   // App state
@@ -35,17 +26,16 @@ const App = () => {
   const [runningAlgo, toggleAlgo] = useToggle(false)
   const [automatedMoveCount, setAutomatedMoveCount] = useState(0)
 
-  const getNextMove = useMemo(
-    () =>
-      getAI({
-        // emptyTileFactor: 1,
-        density: 15,
-        adjacentEqualTileScore: 0.1,
-        cornerScore: 1.5,
-        edgeScore: 1,
-      }),
-    []
-  )
+  const weights = {
+    // emptyTileFactor: 1,
+    density: 15,
+    adjacentEqualTileScore: 0.1,
+    cornerScore: 1.5,
+    edgeScore: 1,
+  }
+
+  const nextMove = useAlgo(weights, boardState, runningAlgo, automatedMoveCount)
+
   const moveTiles = useCallback(
     direction => {
       const actions = getMoveTilesActions(direction, boardState)
@@ -61,6 +51,14 @@ const App = () => {
 
   useArrowKeys(moveTiles)
 
+  useEffect(() => {
+    if (nextMove) {
+      const nextDirection = nextMove.direction
+      moveTiles(nextDirection)
+      setAutomatedMoveCount(automatedMoveCount + 1)
+    }
+  }, [nextMove])
+
   const resetGame = useCallback(() => {
     setBoardState(createInitialBoardState(size))
     setScore(0)
@@ -69,54 +67,6 @@ const App = () => {
     setGameOver(false)
     if (runningAlgo) toggleAlgo()
   }, [setBoardState, setScore, setAutomatedMoveCount, toggleAlgo, runningAlgo, size])
-
-  const stepAlgo = useCallback(async () => {
-    if (!runningAlgo || gameOver) return
-    // await new Promise(resolve => setTimeout(resolve, 0.5))
-    const nextDirection = getNextMove(boardState).direction
-    if (nextDirection) {
-      moveTiles(nextDirection)
-      setAutomatedMoveCount(automatedMoveCount + 1)
-      if (moveCount % 10 === 0) {
-        // toggleAlgo()
-      }
-      return
-    }
-    toggleAlgo()
-  }, [
-    boardState,
-    moveTiles,
-    toggleAlgo,
-    runningAlgo,
-    automatedMoveCount,
-    setAutomatedMoveCount,
-    gameOver,
-    moveCount,
-  ])
-  //
-  // const getStats = useCallback(() => {
-  //   const maxValueOnBoard = maxTileValue(boardState)
-  //   const density = getBoardDensity(boardState)
-  //   const adjacencyScore = getBoardAdjacencyScore(boardState)
-  //   const emptyTileCount = boardState.filter(tile => tile.isEmpty).length
-  //   const emptyTileFactor = maxValueOnBoard * Math.log(emptyTileCount)
-  //   const edgeScore = getEdgeScore(boardState)
-  //   const cornerScore = getCornerScore(boardState)
-  //   const adjacentEqualTileScore = getAdjacentEqualTileScore(boardState)
-  //   return {
-  //     adjacencyScore,
-  //     density,
-  //     emptyTileFactor,
-  //     edgeScore,
-  //     cornerScore,
-  //     adjacentEqualTileScore,
-  //     total: evaluateBoard(boardState),
-  //   }
-  // }, [boardState])
-
-  useEffect(() => {
-    stepAlgo()
-  }, [stepAlgo, moveCount, toggleAlgo])
 
   return (
     <div className={styles.container}>
