@@ -1,7 +1,7 @@
 import {
   applyAction,
   applyAllActions,
-  deepCopyBoardState,
+  getEmptyTileCount,
   getGenerateTileAction,
   getMoveTilesActions,
   maxTileValue,
@@ -15,9 +15,7 @@ import {
   UP,
   getAdjacentIndices,
   isCornerTile,
-  isEdgeTile,
-} from './BoardUtils.js'
-import { getEmptyTileCount } from './BoardUtils'
+} from './BoardUtils'
 
 const simpleAlgorithm = boardState => {
   let prevMove

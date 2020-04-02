@@ -1,10 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { hot } from 'react-hot-loader/root'
 import Board from './Board'
 import { useArrowKeys, useToggle } from './utils'
 import GameInfo from './GameInfo'
 import GameControls from './GameControls'
 
-import styles from './App.module.css'
+import styles from './App.scss'
+console.log(styles)
 import {
   applyAllActions,
   createInitialBoardState,
@@ -131,4 +133,4 @@ const App = () => {
   )
 }
 
-export default App
+export default hot(App)

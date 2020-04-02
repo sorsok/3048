@@ -1,6 +1,6 @@
 import React from 'react'
 
-import styles from './GameInfo.module.css'
+import styles from './GameInfo.scss'
 
 const GameInfo = ({ score, moveCount, automatedMoveCount, stats }) => {
   return (
