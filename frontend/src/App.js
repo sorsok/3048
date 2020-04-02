@@ -14,7 +14,7 @@ import {
   getMoveTilesActions,
   isGameOver,
 } from './BoardUtils'
-
+import { useLookaheadAlgorithm } from './AI'
 
 const App = () => {
   // App state
@@ -34,7 +34,14 @@ const App = () => {
     edgeScore: 1,
   }
 
-  const nextMove = useAlgo(weights, boardState, runningAlgo, automatedMoveCount)
+  const nextMove = useLookaheadAlgorithm(
+    weights,
+    boardState,
+    runningAlgo,
+    automatedMoveCount,
+    gameOver
+  )
+  // console.log('app', nextMove)
 
   const moveTiles = useCallback(
     direction => {

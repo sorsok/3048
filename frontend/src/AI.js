@@ -13,7 +13,11 @@ import {
   UP,
   getAdjacentIndices,
   isCornerTile,
+  deepCopyBoardState,
 } from './BoardUtils'
+import { wrap } from 'comlink'
+import { useEffect, useMemo, useState } from 'react'
+import { useWorker } from './utils'
 
 // const simpleAlgorithm = boardState => {
 //   let prevMove
@@ -134,7 +138,7 @@ const getEstimatedLeafCount = (boardState, searchDepth) => {
   return (4 * 2 * emptyTileCount) ** searchDepth
 }
 
-const getSearchDepth = boardState => {
+export const getSearchDepth = boardState => {
   const TIME_PER_LEAF = 0.008
   const ALLOWED_TIME = 500
   for (let i = 2; i < 10; i++) {
@@ -251,7 +255,7 @@ export const evaluateBoard = (boardState, weights) => {
   return Object.keys(weights).reduce((sum, metric) => scores[metric] * weights[metric], 0)
 }
 
-const getAllGenerateTileActions = (boardState, newValue) => {
+export const getAllGenerateTileActions = (boardState, newValue) => {
   const generateTileActions = []
   boardState.forEach((tile, index) => {
     if (tile.isEmpty) {
@@ -261,10 +265,9 @@ const getAllGenerateTileActions = (boardState, newValue) => {
   return generateTileActions
 }
 
-export const lookaheadAlgorithm = (weights, boardState) => {
+export const lookaheadAlgorithm = (weights, boardState, searchDepth) => {
   let startTime = performance.now()
   let leaves = 0
-  const searchDepth = getSearchDepth(boardState)
   const inner = depth => {
     if (depth === 0) {
       leaves += 1
@@ -318,4 +321,73 @@ export const lookaheadAlgorithm = (weights, boardState) => {
     (time / leaves) * 1000
   )
   return result
+}
+
+export const useLookaheadAlgorithm = (
+  weights,
+  boardState,
+  runningAlgo,
+  automatedMoveCount,
+  gameOver
+) => {
+  const [isCalculating, setIsCalculating] = useState(false)
+  const [move0, setMove0] = useState(undefined)
+  const [move1, setMove1] = useState(undefined)
+  const [move2, setMove2] = useState(undefined)
+  const [move3, setMove3] = useState(undefined)
+  const [move, setMove] = useState(undefined)
+
+  useEffect(() => {
+    if (!runningAlgo || gameOver) {
+      return
+    }
+    if (!isCalculating) {
+      setIsCalculating(true)
+      setMove0(undefined)
+      setMove1(undefined)
+      setMove2(undefined)
+      setMove3(undefined)
+      const searchDepth = getSearchDepth(boardState)
+      console.log(searchDepth)
+      const directions = [UP, LEFT, RIGHT, DOWN]
+      directions.forEach((direction, index) => {
+        const boardCopy = deepCopyBoardState(boardState)
+        const actions = getMoveTilesActions(direction, boardCopy)
+        if (actions.length === 0) {
+          if (index === 0) setMove0({ direction, score: 0 })
+          if (index === 1) setMove1({ direction, score: 0 })
+          if (index === 2) setMove2({ direction, score: 0 })
+          if (index === 3) setMove3({ direction, score: 0 })
+          return
+        }
+        applyAllActions(actions, boardCopy)
+        const worker = new Worker('./Worker', { type: 'module' })
+        worker.postMessage({ weights, boardState: boardCopy, depth: searchDepth })
+        worker.onmessage = e => {
+          if (index === 0) setMove0({ direction, score: e.data.score })
+          if (index === 1) setMove1({ direction, score: e.data.score })
+          if (index === 2) setMove2({ direction, score: e.data.score })
+          if (index === 3) setMove3({ direction, score: e.data.score })
+        }
+      })
+    }
+  }, [weights, boardState, runningAlgo, automatedMoveCount])
+
+  const moves = []
+  if (move0) moves.push(move0)
+  if (move1) moves.push(move1)
+  if (move2) moves.push(move2)
+  if (move3) moves.push(move3)
+  if (moves.length === 4) {
+    moves.sort((a, b) => b.score - a.score)
+    console.log('setting', moves[0])
+    const nextMove = moves[0]
+    setMove({ ...nextMove })
+    setMove0(undefined)
+    setMove1(undefined)
+    setMove2(undefined)
+    setMove3(undefined)
+    if (isCalculating) setIsCalculating(false)
+  }
+  return move
 }

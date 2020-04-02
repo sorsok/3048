@@ -41,7 +41,12 @@ const config = {
   devServer: {
     contentBase: './dist',
   },
-  plugins: [new WorkerPlugin()],
+  plugins: [
+    new WorkerPlugin({
+      // use "self" as the global object when receiving hot updates.
+      globalObject: 'self', // <-- this is the default value
+    }),
+  ],
 }
 
 module.exports = config

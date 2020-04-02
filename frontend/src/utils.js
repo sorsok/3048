@@ -65,61 +65,61 @@ export const useToggle = initialState => {
 /**
  * Creates a worker, a cleanup function and returns it
  */
-const makeWorkerApiAndCleanup = () => {
-  // Here we create our worker and wrap it with comlink so we can interact with it
-  const worker = new Worker('./Worker', { type: 'module' })
-  const workerApi = wrap(worker)
-
-  // A cleanup function that releases the comlink proxy and terminates the worker
-  const cleanup = () => {
-    workerApi[releaseProxy]()
-    worker.terminate()
-  }
-
-  const workerApiAndCleanup = { workerApi, cleanup }
-
-  return workerApiAndCleanup
-}
-
-const useWorker = () => {
-  // memoise a worker so it can be reused; create one worker up front
-  // and then reuse it subsequently; no creating new workers each time
-  const workerApiAndCleanup = useMemo(() => makeWorkerApiAndCleanup(), [])
-
-  useEffect(() => {
-    const { cleanup } = workerApiAndCleanup
-
-    // cleanup our worker when we're done with it
-    return () => {
-      cleanup()
-    }
-  }, [workerApiAndCleanup])
-
-  return workerApiAndCleanup
-}
-
-export const useAlgo = (weights, boardState, runningAlgo, automatedMoveCount) => {
-  // We'll want to expose a wrapping object so we know when a calculation is in progress
-  const [move, setMove] = useState(undefined)
-  const [isCalculating, setIsCalculating] = useState(false)
-
-  // acquire our worker
-  const { workerApi } = useWorker()
-
-  useEffect(() => {
-    setMove(undefined)
-    if (!runningAlgo) {
-      setMove(undefined)
-      return
-    }
-    if (!isCalculating) {
-      setIsCalculating(true)
-      workerApi.lookaheadAlgorithm(weights, boardState).then(result => {
-        setMove(result)
-        setIsCalculating(false)
-      })
-    }
-  }, [workerApi, setMove, weights, boardState, runningAlgo, automatedMoveCount])
-
-  return move
-}
+// const makeWorkerApiAndCleanup = () => {
+//   // Here we create our worker and wrap it with comlink so we can interact with it
+//   const worker = new Worker('./Worker', { type: 'module' })
+//   const workerApi = wrap(worker)
+//
+//   // A cleanup function that releases the comlink proxy and terminates the worker
+//   const cleanup = () => {
+//     workerApi[releaseProxy]()
+//     worker.terminate()
+//   }
+//
+//   const workerApiAndCleanup = { workerApi, cleanup }
+//
+//   return workerApiAndCleanup
+// }
+//
+// export const useWorker = () => {
+//   // memoise a worker so it can be reused; create one worker up front
+//   // and then reuse it subsequently; no creating new workers each time
+//   const workerApiAndCleanup = useMemo(() => makeWorkerApiAndCleanup(), [])
+//
+//   useEffect(() => {
+//     const { cleanup } = workerApiAndCleanup
+//
+//     // cleanup our worker when we're done with it
+//     return () => {
+//       cleanup()
+//     }
+//   }, [workerApiAndCleanup])
+//
+//   return workerApiAndCleanup
+// }
+//
+// export const useAlgo = (weights, boardState, runningAlgo, automatedMoveCount, gameOver) => {
+//   // We'll want to expose a wrapping object so we know when a calculation is in progress
+//   const [move, setMove] = useState(undefined)
+//   const [isCalculating, setIsCalculating] = useState(false)
+//
+//   // acquire our worker
+//   const { workerApi } = useWorker()
+//
+//   useEffect(() => {
+//     setMove(undefined)
+//     if (!runningAlgo || gameOver) {
+//       setMove(undefined)
+//       return
+//     }
+//     if (!isCalculating) {
+//       setIsCalculating(true)
+//       workerApi.lookaheadAlgorithm(weights, boardState).then(result => {
+//         setMove(result)
+//         setIsCalculating(false)
+//       })
+//     }
+//   }, [workerApi, setMove, weights, boardState, runningAlgo, automatedMoveCount])
+//
+//   return move
+// }
