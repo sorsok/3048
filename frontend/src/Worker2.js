@@ -28,7 +28,7 @@ const getIndexTraversalOrder = (direction, size) => {
   return indices
 }
 
-const createEmptyTiles = size => {
+const createEmptyTiles = (size) => {
   const tiles = []
   for (let index = 0; index < size ** 2; index += 1) {
     tiles.push({ value: null, isEmpty: true })
@@ -54,8 +54,8 @@ const inSameRowOrColumn = (index1, index2, size) => {
   return row1 === row2 || col1 === col2
 }
 
-const chooseRandomEmptyTile = boardState => {
-  const noEmpty = boardState.every(tile => !tile.isEmpty)
+const chooseRandomEmptyTile = (boardState) => {
+  const noEmpty = boardState.every((tile) => !tile.isEmpty)
   if (noEmpty) {
     return -1
   }
@@ -208,9 +208,9 @@ const getGenerateTileAction = (index, value) => {
   }
 }
 
-const maxTileValue = boardState => {
+const maxTileValue = (boardState) => {
   let maxValue = 0
-  boardState.forEach(tile => {
+  boardState.forEach((tile) => {
     if (!tile.isEmpty) {
       maxValue = tile.value > maxValue ? tile.value : maxValue
     }
@@ -220,22 +220,22 @@ const maxTileValue = boardState => {
 
 const getAdjacentIndices = (index, size) => {
   const indices = [index - 1, index + 1, index + size, index - size]
-  return indices.filter(idx => idx > 0 && idx < size ** 2)
+  return indices.filter((idx) => idx > 0 && idx < size ** 2)
 }
 
 const isCornerTile = (index, size) => {
   return index === 0 || index === size - 1 || index === size ** 2 - 1 || index === size ** 2 - size
 }
 
-const getEmptyTileCount = boardState => {
+const getEmptyTileCount = (boardState) => {
   let emptyTileCount = 0
-  boardState.forEach(tile => {
+  boardState.forEach((tile) => {
     if (tile.isEmpty) emptyTileCount += 1
   })
   return emptyTileCount
 }
 
-const getBoardDensity = boardState => {
+const getBoardDensity = (boardState) => {
   const maxValue = maxTileValue(boardState)
   return (
     (boardState.reduce(
@@ -255,7 +255,7 @@ const getEstimatedLeafCount = (boardState, searchDepth) => {
   return (4 * 2 * emptyTileCount) ** searchDepth
 }
 
-const getSearchDepth = boardState => {
+const getSearchDepth = (boardState) => {
   const TIME_PER_LEAF = 0.008
   const ALLOWED_TIME = 500
   for (let i = 2; i < 10; i++) {
@@ -272,7 +272,7 @@ const getSearchDepth = boardState => {
   return i
 }
 
-const getEdgeScore = boardState => {
+const getEdgeScore = (boardState) => {
   const size = boardState.length ** 0.5
   let top = 0
   let bottom = 0
@@ -296,7 +296,7 @@ const getEdgeScore = boardState => {
   return (edges[0] / size) ** 0.5
 }
 
-const getCornerScore = boardState => {
+const getCornerScore = (boardState) => {
   const size = boardState.length ** 0.5
   let maxValue = 0
   boardState.forEach((tile, index) => {
@@ -308,7 +308,7 @@ const getCornerScore = boardState => {
   return maxValue ** 2
 }
 
-const getBoardAdjacencyScore = boardState => {
+const getBoardAdjacencyScore = (boardState) => {
   const size = boardState.length ** 0.5
   return (
     boardState
@@ -319,7 +319,7 @@ const getBoardAdjacencyScore = boardState => {
         }
         const adjacentIndices = getAdjacentIndices(index, size)
         return adjacentIndices
-          .map(adjacentIndex => {
+          .map((adjacentIndex) => {
             let adjacentTileValue = 0
             const adjacentTile = boardState[adjacentIndex]
             if (!adjacentTile.isEmpty) {
@@ -336,13 +336,13 @@ const getBoardAdjacencyScore = boardState => {
   )
 }
 
-const getAdjacentEqualTileScore = boardState => {
+const getAdjacentEqualTileScore = (boardState) => {
   const size = boardState.length ** 0.5
   let sumOfSquares = 0
   boardState.forEach((tile, index) => {
     if (!tile.isEmpty) {
       const adjacentIndices = getAdjacentIndices(index, size)
-      adjacentIndices.forEach(adjacentIndex => {
+      adjacentIndices.forEach((adjacentIndex) => {
         const adjacentTile = boardState[adjacentIndex]
         if (!adjacentTile.isEmpty) {
           const difference = Math.abs(tile.value - adjacentTile.value)
@@ -407,12 +407,12 @@ const childrenMoves = {
 const pendingChildren = {}
 
 const getChildOnmessage = (id, direction, num) => {
-  return e => {
+  return (e) => {
     delete pendingChildren[id]
     childrenMoves[direction][num].push(e.data)
     if (Object.keys(pendingChildren).length === 0) {
       const options = []
-      DIRECTIONS.forEach(direction => {
+      DIRECTIONS.forEach((direction) => {
         const averageTwoScore =
           childrenMoves[direction][2].reduce((sum, move) => sum + move.score, 0) /
           childrenMoves[direction][2].length
@@ -427,13 +427,13 @@ const getChildOnmessage = (id, direction, num) => {
   }
 }
 
-onmessage = e => {
+onmessage = (e) => {
   let { weights, boardState, searchDepth } = e.data
   if (searchDepth === undefined) {
     searchDepth = getSearchDepth(boardState)
   }
   const directions = [UP, LEFT, RIGHT, DOWN]
-  directions.forEach(direction => {
+  directions.forEach((direction) => {
     const actions = getMoveTilesActions(direction, boardState)
     if (actions.length === 0) {
       return
@@ -441,7 +441,7 @@ onmessage = e => {
     applyAllActions(actions, boardState)
     const twoActions = getAllGenerateTileActions(boardState, 2)
     const fourActions = getAllGenerateTileActions(boardState, 4)
-    twoActions.forEach(action => {
+    twoActions.forEach((action) => {
       applyAction(action, boardState)
       const worker = new Worker('./Worker', { type: 'module' })
       const id = `${direction}-2-${index}`
@@ -450,7 +450,7 @@ onmessage = e => {
       worker.postMessage({ weights, boardState, searchDepth: searchDepth - 1 })
       reverseAction(action, boardState)
     })
-    fourActions.forEach(action => {
+    fourActions.forEach((action) => {
       applyAction(action, boardState)
       const worker = new Worker('./Worker', { type: 'module' })
       const id = `${direction}-2-${index}`

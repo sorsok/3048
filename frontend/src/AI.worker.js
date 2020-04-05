@@ -477,14 +477,14 @@ onmessage = e => {
   const result = inner(searchDepth)
   let endTime = performance.now()
   let time = endTime - startTime
-  // console.log(
-  //   'Search Depth: ',
-  //   searchDepth,
-  //
-  //   ', Boards Checked: ',
-  //   leaves,
-  //   ', Time Per 1000 Boards: ',
-  //   (time / leaves) * 1000
-  // )
+  console.log(
+    'Search Depth: ',
+    searchDepth,
+
+    ', Boards Checked: ',
+    leaves,
+    ', Time Per 1000 Boards: ',
+    (time / leaves) * 1000
+  )
   postMessage({ id, parentDirection, newTileValue, ...result })
 }

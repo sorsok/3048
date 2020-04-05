@@ -140,8 +140,8 @@ const getEstimatedLeafCount = (boardState, searchDepth) => {
 }
 
 export const getSearchDepth = boardState => {
-  const TIME_PER_LEAF = 0.008
-  const ALLOWED_TIME = 500
+  const TIME_PER_LEAF = 0.001
+  const ALLOWED_TIME = 100
   for (let i = 2; i < 10; i++) {
     const currentLeafCount = getEstimatedLeafCount(boardState, i)
     const currentEstimate = currentLeafCount * TIME_PER_LEAF
@@ -149,11 +149,11 @@ export const getSearchDepth = boardState => {
     const prevLeafCount = getEstimatedLeafCount(boardState, i - 1)
     const prevEstimate = prevLeafCount * TIME_PER_LEAF
     if (currentEstimate - ALLOWED_TIME > ALLOWED_TIME - prevEstimate) {
-      return i - 1
+      return i - 2
     }
-    return i
+    return i - 1
   }
-  return i
+  return i - 1
 }
 
 export const getEdgeScore = boardState => {
@@ -330,7 +330,7 @@ export const useLookaheadAlgorithm = (
   automatedMoveCount,
   gameOver
 ) => {
-  const numWorkers = 100
+  const numWorkers = 50
   const [returnValue, setReturnValue] = useState(undefined)
   const [isCalculating, setIsCalculating] = useState(false)
   const move = useMemo(
@@ -364,18 +364,23 @@ export const useLookaheadAlgorithm = (
       if (Object.keys(pendingChildren).length === 0) {
         const options = []
         DIRECTIONS.forEach(direction => {
+          if (move[direction][2].length === 0) {
+            return
+          }
           const averageTwoScore =
             move[direction][2].reduce((sum, move) => sum + move.score, 0) /
             move[direction][2].length
+          move[direction][2] = []
           const averageFourScore =
             move[direction][4].reduce((sum, move) => sum + move.score, 0) /
             move[direction][4].length
+          move[direction][4] = []
           options.push({ score: 0.9 * averageTwoScore + 0.1 * averageFourScore, direction })
         })
         options.sort((a, b) => b.score - a.score)
+
         setReturnValue(options[0])
         setIsCalculating(false)
-        console.log('last child - calculating final score', JSON.parse(JSON.stringify(options[0])))
       }
     },
     [pendingChildren, move, setIsCalculating, setReturnValue]
@@ -415,9 +420,16 @@ export const useLookaheadAlgorithm = (
         const twoActions = getAllGenerateTileActions(boardState, 2)
         const fourActions = getAllGenerateTileActions(boardState, 4)
         twoActions.forEach((action, index) => {
-          applyAction(action, boardState)
           const id = `${direction}-2-${index}`
           pendingChildren[id] = true
+        })
+        fourActions.forEach((action, index) => {
+          const id = `${direction}-4-${index}`
+          pendingChildren[id] = true
+        })
+        twoActions.forEach((action, index) => {
+          applyAction(action, boardState)
+          const id = `${direction}-2-${index}`
           workers[childrenCount % numWorkers].postMessage({
             weights,
             boardState,
@@ -425,7 +437,6 @@ export const useLookaheadAlgorithm = (
             id,
             parentDirection: direction,
             newTileValue: 2,
-            automatedMoveCount: automatedMoveCount + 1,
           })
           reverseAction(action, boardState)
           childrenCount += 1
@@ -433,7 +444,6 @@ export const useLookaheadAlgorithm = (
         fourActions.forEach((action, index) => {
           applyAction(action, boardState)
           const id = `${direction}-4-${index}`
-          pendingChildren[id] = true
           workers[childrenCount % numWorkers].postMessage({
             weights,
             boardState,
@@ -441,14 +451,13 @@ export const useLookaheadAlgorithm = (
             id,
             parentDirection: direction,
             newTileValue: 4,
-            automatedMoveCount: automatedMoveCount + 1,
           })
           childrenCount += 1
           reverseAction(action, boardState)
         })
-        console.log('children count', childrenCount)
         reverseAllActions(actions, boardState)
       })
+      console.log('children count', childrenCount)
     }
   }, [
     weights,

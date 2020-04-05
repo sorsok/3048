@@ -61,8 +61,8 @@ const App = () => {
   useArrowKeys(moveTiles)
 
   useEffect(() => {
+    console.log('another move')
     if (nextMove) {
-      console.log('another move')
       const nextDirection = nextMove.direction
       moveTiles(nextDirection)
       setAutomatedMoveCount(automatedMoveCount + 1)
