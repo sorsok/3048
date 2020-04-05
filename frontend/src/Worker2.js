@@ -381,53 +381,86 @@ const getAllGenerateTileActions = (boardState, newValue) => {
   })
   return generateTileActions
 }
+const DIRECTIONS = [UP, DOWN, RIGHT, LEFT]
 
 /////////////////////////////////
 
-onmessage = e => {
-  let { weights, boardState, depth } = e.data
-  if (depth === undefined) {
-    depth = getSearchDepth(boardState)
-  }
-  const inner = depth => {
-    if (depth === 0) {
-      const score = evaluateBoard(boardState, weights)
-      return { score }
+const childrenMoves = {
+  LEFT: {
+    2: [],
+    4: [],
+  },
+  RIGHT: {
+    2: [],
+    4: [],
+  },
+  UP: {
+    2: [],
+    4: [],
+  },
+  DOWN: {
+    2: [],
+    4: [],
+  },
+}
+
+const pendingChildren = {}
+
+const getChildOnmessage = (id, direction, num) => {
+  return e => {
+    delete pendingChildren[id]
+    childrenMoves[direction][num].push(e.data)
+    if (Object.keys(pendingChildren).length === 0) {
+      const options = []
+      DIRECTIONS.forEach(direction => {
+        const averageTwoScore =
+          childrenMoves[direction][2].reduce((sum, move) => sum + move.score, 0) /
+          childrenMoves[direction][2].length
+        const averageFourScore =
+          childrenMoves[direction][4].reduce((sum, move) => sum + move.score, 0) /
+          childrenMoves[direction][4].length
+        options.push({ score: 0.9 * averageTwoScore + 0.1 * averageFourScore, direction })
+      })
+      options.sort((a, b) => b.score - a.score)
+      postMessage(options[0])
     }
-    const directions = [UP, LEFT, RIGHT, DOWN]
-    const options = []
-    directions.forEach(direction => {
-      const actions = getMoveTilesActions(direction, boardState)
-      if (actions.length === 0) {
-        options.push({ direction, score: 0 })
-        return
-      }
-      applyAllActions(actions, boardState)
-      const twoActions = getAllGenerateTileActions(boardState, 2)
-      const twoScores = []
-      const fourActions = getAllGenerateTileActions(boardState, 4)
-      const fourScores = []
-      twoActions.forEach(action => {
-        applyAction(action, boardState)
-        const nextMove = inner(depth - 1)
-        reverseAction(action, boardState)
-        twoScores.push(nextMove.score)
-      })
-      fourActions.forEach(action => {
-        applyAction(action, boardState)
-        const nextMove = inner(depth - 1)
-        reverseAction(action, boardState)
-        fourScores.push(nextMove.score)
-      })
-      reverseAllActions(actions, boardState)
-      const averageTwoScore = twoScores.reduce((sum, score) => sum + score, 0) / twoScores.length
-      const averageFourScore = fourScores.reduce((sum, score) => sum + score, 0) / fourScores.length
-      options.push({ score: 0.9 * averageTwoScore + 0.1 * averageFourScore, direction })
-    })
-    options.sort((a, b) => b.score - a.score)
-    return options[0]
   }
-  postMessage(inner(depth))
+}
+
+onmessage = e => {
+  let { weights, boardState, searchDepth } = e.data
+  if (searchDepth === undefined) {
+    searchDepth = getSearchDepth(boardState)
+  }
+  const directions = [UP, LEFT, RIGHT, DOWN]
+  directions.forEach(direction => {
+    const actions = getMoveTilesActions(direction, boardState)
+    if (actions.length === 0) {
+      return
+    }
+    applyAllActions(actions, boardState)
+    const twoActions = getAllGenerateTileActions(boardState, 2)
+    const fourActions = getAllGenerateTileActions(boardState, 4)
+    twoActions.forEach(action => {
+      applyAction(action, boardState)
+      const worker = new Worker('./Worker', { type: 'module' })
+      const id = `${direction}-2-${index}`
+      pendingChildren[id] = true
+      worker.onmessage = getChildOnmessage(id, direction, 2)
+      worker.postMessage({ weights, boardState, searchDepth: searchDepth - 1 })
+      reverseAction(action, boardState)
+    })
+    fourActions.forEach(action => {
+      applyAction(action, boardState)
+      const worker = new Worker('./Worker', { type: 'module' })
+      const id = `${direction}-2-${index}`
+      pendingChildren[id] = true
+      worker.onmessage = getChildOnmessage(id, direction, 4)
+      worker.postMessage({ weights, boardState, searchDepth: searchDepth - 1 })
+      reverseAction(action, boardState)
+    })
+    reverseAllActions(actions, boardState)
+  })
 }
 
 ////////

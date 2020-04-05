@@ -6,7 +6,7 @@ import GameInfo from './GameInfo'
 import GameControls from './GameControls'
 
 import styles from './App.scss'
-console.log(styles)
+
 import {
   applyAllActions,
   createInitialBoardState,
@@ -41,7 +41,7 @@ const App = () => {
     automatedMoveCount,
     gameOver
   )
-  // console.log('app', nextMove)
+  console.log('app', nextMove === undefined ? undefined : JSON.parse(JSON.stringify(nextMove)))
 
   const moveTiles = useCallback(
     direction => {
@@ -51,6 +51,8 @@ const App = () => {
         setMoveCount(moveCount + 1)
         generateNewTile(boardState)
         setGameOver(isGameOver(boardState))
+      } else {
+        console.log('invalid move')
       }
     },
     [boardState, setMoveCount, moveCount, score]
@@ -60,6 +62,7 @@ const App = () => {
 
   useEffect(() => {
     if (nextMove) {
+      console.log('another move')
       const nextDirection = nextMove.direction
       moveTiles(nextDirection)
       setAutomatedMoveCount(automatedMoveCount + 1)

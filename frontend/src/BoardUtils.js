@@ -6,6 +6,7 @@ export const UP = 'UP'
 export const DOWN = 'DOWN'
 export const RIGHT = 'RIGHT'
 export const LEFT = 'LEFT'
+export const DIRECTIONS = [UP, DOWN, RIGHT, LEFT]
 
 export const getIndexTraversalOrder = (direction, size) => {
   const indices = []
@@ -210,8 +211,7 @@ export const getMoveTilesActions = (direction, boardState) => {
 }
 
 export const isGameOver = boardState => {
-  const directions = [UP, DOWN, RIGHT, LEFT]
-  for (let direction of directions) {
+  for (let direction of DIRECTIONS) {
     const actions = getMoveTilesActions(direction, boardState)
     if (actions.length) return false
   }
