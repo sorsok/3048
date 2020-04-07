@@ -8,7 +8,7 @@ export const RIGHT = 'RIGHT'
 export const LEFT = 'LEFT'
 export const DIRECTIONS = [UP, DOWN, RIGHT, LEFT]
 
-export const getIndexTraversalOrder = (direction, size) => {
+const getIndexTraversalOrder = (direction, size) => {
   const indices = []
   if (direction === UP || direction === DOWN) {
     for (let row = 0; row < size; row += 1) {
@@ -38,24 +38,25 @@ const createEmptyTiles = (size) => {
   return tiles
 }
 
-export const getNextTileIndex = (tileIndex, direction, size) => {
+const getNextTileIndex = (tileIndex, direction, size) => {
   if (direction === UP) return tileIndex - size
   if (direction === DOWN) return tileIndex + size
   if (direction === RIGHT) return tileIndex + 1
   if (direction === LEFT) return tileIndex - 1
+  return null
 }
 
-export const indexToCoordinates = (index, size) => {
+const indexToCoordinates = (index, size) => {
   return [Math.floor(index / size), index % size]
 }
 
-export const inSameRowOrColumn = (index1, index2, size) => {
+const inSameRowOrColumn = (index1, index2, size) => {
   const [row1, col1] = indexToCoordinates(index1, size)
   const [row2, col2] = indexToCoordinates(index2, size)
   return row1 === row2 || col1 === col2
 }
 
-export const chooseRandomEmptyTile = (boardState) => {
+const chooseRandomEmptyTile = (boardState) => {
   const noEmpty = boardState.every((tile) => !tile.isEmpty)
   if (noEmpty) {
     return -1
@@ -71,7 +72,7 @@ export const chooseRandomEmptyTile = (boardState) => {
   return position
 }
 
-export const chooseTwoNumbersInRange = (start, stop) => {
+const chooseTwoNumbersInRange = (start, stop) => {
   if (stop - start < 2) {
     throw new Error('Range must be greater than 2')
   }
@@ -152,12 +153,12 @@ export const reverseAllActions = (allActions, boardState) => {
   return score
 }
 
-const getAndApplyPushTileActions = (direction, tileIndex, mergedIndices, boardState) => {
+const getAndApplyPushTileActions = (direction, initialTileIndex, mergedIndices, boardState) => {
   const actions = []
   const newlyMergedIndices = []
-  let tile = boardState[tileIndex]
+  let tile = boardState[initialTileIndex]
   const size = boardState.length ** 0.5
-
+  let tileIndex = initialTileIndex
   if (!tile.isEmpty) {
     let nextTileIndex = getNextTileIndex(tileIndex, direction, size)
     let nextTile = boardState[nextTileIndex]
@@ -194,9 +195,9 @@ const getAndApplyPushTileActions = (direction, tileIndex, mergedIndices, boardSt
 export const getMoveTilesActions = (direction, boardState) => {
   const size = boardState.length ** 0.5
   const tileIndices = getIndexTraversalOrder(direction, size)
-  let allActions = []
-  let mergedIndices = []
-  for (let tileIndex of tileIndices) {
+  const allActions = []
+  const mergedIndices = []
+  tileIndices.forEach((tileIndex) => {
     const [actions, newlyMergedIndices] = getAndApplyPushTileActions(
       direction,
       tileIndex,
@@ -205,17 +206,18 @@ export const getMoveTilesActions = (direction, boardState) => {
     )
     allActions.push(...actions)
     mergedIndices.push(...newlyMergedIndices)
-  }
+  })
   reverseAllActions(allActions, boardState)
   return allActions
 }
 
 export const isGameOver = (boardState) => {
-  for (let direction of DIRECTIONS) {
+  let gameOver = false
+  DIRECTIONS.forEach((direction) => {
     const actions = getMoveTilesActions(direction, boardState)
-    if (actions.length) return false
-  }
-  return true
+    if (actions.length) gameOver = true
+  })
+  return gameOver
 }
 
 export const getGenerateTileAction = (index, value) => {
@@ -249,6 +251,21 @@ export const maxTileValue = (boardState) => {
     }
   })
   return maxValue
+}
+
+export const getAdjacentTiles = (boardState, index) => {
+  const size = boardState.length ** 0.5
+  const above = boardState[index - size]
+  const below = boardState[index + size]
+  let left
+  if (index % size !== 0) {
+    left = boardState[index - 1]
+  }
+  let right
+  if ((index + 1) % size !== 0) {
+    right = boardState[index + 1]
+  }
+  return [left, above, right, below]
 }
 
 export const getAdjacentIndices = (index, size) => {

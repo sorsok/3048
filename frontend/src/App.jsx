@@ -1,7 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { hot } from 'react-hot-loader/root'
+import React, { useCallback, useEffect, useState } from 'react'
 import Board from './Board'
-import { useAlgo, useArrowKeys, useToggle } from './utils'
+import { useArrowKeys, useToggle } from './utils'
 import GameInfo from './GameInfo'
 import GameControls from './GameControls'
 
@@ -18,20 +17,22 @@ import { useLookaheadAlgorithm } from './AI'
 
 const App = () => {
   // App state
-  const [size, setSize] = useState(4)
+  const [size] = useState(4)
   const [gameOver, setGameOver] = useState(false)
   const [moveCount, setMoveCount] = useState(0)
   const [boardState, setBoardState] = useState(createInitialBoardState(size))
   const [score, setScore] = useState(0)
   const [runningAlgo, toggleAlgo] = useToggle(false)
   const [automatedMoveCount, setAutomatedMoveCount] = useState(0)
+  const [moveHistory] = useState([{ score: 0 }])
 
   const weights = {
     // emptyTileFactor: 1,
-    density: 15,
-    adjacentEqualTileScore: 0.1,
-    cornerScore: 1.5,
-    edgeScore: 1,
+    // density: 2,
+    adjacencyScore: 4,
+    // adjacentEqualTileScore: 10,
+    // cornerScore: 1,
+    // edgeScore: 1,
   }
 
   const nextMove = useLookaheadAlgorithm(
@@ -41,10 +42,9 @@ const App = () => {
     automatedMoveCount,
     gameOver
   )
-  console.log('app', nextMove === undefined ? undefined : JSON.parse(JSON.stringify(nextMove)))
 
   const moveTiles = useCallback(
-    direction => {
+    (direction) => {
       const actions = getMoveTilesActions(direction, boardState)
       if (actions.length > 0) {
         setScore(score + applyAllActions(actions, boardState))
@@ -52,7 +52,7 @@ const App = () => {
         generateNewTile(boardState)
         setGameOver(isGameOver(boardState))
       } else {
-        console.log('invalid move')
+        throw Error()
       }
     },
     [boardState, setMoveCount, moveCount, score]
@@ -61,10 +61,9 @@ const App = () => {
   useArrowKeys(moveTiles)
 
   useEffect(() => {
-    console.log('another move')
     if (nextMove) {
-      const nextDirection = nextMove.direction
-      moveTiles(nextDirection)
+      moveHistory.push(nextMove)
+      moveTiles(nextMove.direction)
       setAutomatedMoveCount(automatedMoveCount + 1)
     }
   }, [nextMove])
@@ -84,13 +83,13 @@ const App = () => {
         score={score}
         moveCount={moveCount}
         automatedMoveCount={automatedMoveCount}
-        // stats={getStats()}
+        moveHistory={moveHistory}
       />
       <Board size={size} boardState={boardState} gameOver={gameOver} />
       <GameControls runningAlgo={runningAlgo} toggleAlgo={toggleAlgo} resetGame={resetGame} />
-      {/*<button onClick={runSimulation}>Run Simulation </button>*/}
+      {/* <button onClick={runSimulation}>Run Simulation </button> */}
     </div>
   )
 }
 
-export default hot(App)
+export default App

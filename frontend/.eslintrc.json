@@ -4,6 +4,7 @@
     "es6": true,
     "browser": true
   },
+    "parser": "babel-eslint",
   "parserOptions": {
     "ecmaVersion": 2018,
     "sourceType": "module",
@@ -13,7 +14,8 @@
   },
   "extends": [
     "eslint:recommended",
-    "plugin:prettier/recommended"
+    "plugin:prettier/recommended",
+    "airbnb", "prettier"
   ],
   "globals": {
     "Atomics": "readonly",

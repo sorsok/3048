@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   applyAction,
   applyAllActions,
@@ -7,81 +8,14 @@ import {
   maxTileValue,
   reverseAction,
   reverseAllActions,
-  DOWN,
-  LEFT,
-  RIGHT,
-  UP,
   getAdjacentIndices,
   isCornerTile,
-  deepCopyBoardState,
   DIRECTIONS,
+  isGameOver,
+  getAdjacentTiles,
 } from './BoardUtils'
-import { wrap } from 'comlink'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useToggle, useWorker } from './utils'
 
-// const simpleAlgorithm = boardState => {
-//   let prevMove
-//   const inner = boardState => {
-//     const upActions = getMoveTilesActions(UP, boardState)
-//     if (upActions.length > 0 && prevMove !== LEFT) {
-//       prevMove = UP
-//       return UP
-//     }
-//     const leftActions = getMoveTilesActions(LEFT, boardState)
-//     if (leftActions.length > 0) {
-//       prevMove = LEFT
-//       return LEFT
-//     }
-//     const rightActions = getMoveTilesActions(RIGHT, boardState)
-//     if (rightActions.length > 0) {
-//       prevMove = RIGHT
-//       return RIGHT
-//     }
-//     const downActions = getMoveTilesActions(DOWN, boardState)
-//     if (downActions.length > 0) {
-//       prevMove = DOWN
-//       return DOWN
-//     }
-//   }
-//   return inner(boardState)
-// }
-
-// const getActionMergeFrequencies = (actions, boardState) => {
-//   const mergeActions = actions.filter(action => action.type === MERGE)
-//   return mergeActions.reduce((acc, action) => {
-//     const tileValue = boardState[action.toIndex].value
-//     const mergeFrequencies = acc
-//     mergeFrequencies[tileValue] = mergeFrequencies[tileValue] ? mergeFrequencies[tileValue] + 1 : 1
-//     return mergeFrequencies
-//   }, {})
-// }
-//
-// const getMinMergeFrequency = mergeFrequencies => {
-//   if (Object.keys(mergeFrequencies).length === 0) return [Infinity, 0]
-//   return Object.entries(mergeFrequencies).sort((a, b) => a[0] - b[0])[0]
-// }
-
-// const mostLowMerges = (a, b) => {
-//   const aMinFrequency = getMinMergeFrequency(a.mergeFrequencies)
-//   const bMinFrequency = getMinMergeFrequency(b.mergeFrequencies)
-//   if (aMinFrequency[0] === bMinFrequency[0]) return bMinFrequency[1] - aMinFrequency[1]
-//   return aMinFrequency[0] - bMinFrequency[0]
-// }
-
-// const getMaxMergeFrequency = mergeFrequencies => {
-//   if (Object.keys(mergeFrequencies).length === 0) return [0, 0]
-//   return Object.entries(mergeFrequencies).sort((a, b) => b[0] - a[0])[0]
-// }
-
-// const mostHighMerges = (a, b) => {
-//   const aMaxFrequency = getMaxMergeFrequency(a.mergeFrequencies)
-//   const bMaxFrequency = getMaxMergeFrequency(b.mergeFrequencies)
-//   if (aMaxFrequency[0] === bMaxFrequency[0]) return bMaxFrequency[1] - aMaxFrequency[1]
-//   return bMaxFrequency[0] - aMaxFrequency[0]
-// }
-
-export const getBoardDensity = boardState => {
+const getBoardDensity = (boardState) => {
   const maxValue = maxTileValue(boardState)
   return (
     (boardState.reduce(
@@ -92,44 +26,6 @@ export const getBoardDensity = boardState => {
     0.5
   )
 }
-//
-// const getActionDensity = (actions, boardState) => {
-//   applyAllActions(actions, boardState)
-//   const averageValue = getBoardDensity(boardState)
-//   reverseAllActions(actions, boardState)
-//   return averageValue
-// }
-
-// const smarterAlgorithm = boardState => {
-//   let options = [{ direction: UP }, { direction: LEFT }, { direction: RIGHT }, { direction: DOWN }]
-//   const maxValueOnBoard = boardState
-//     .filter(tile => !tile.isEmpty)
-//     .reduce((maxValue, tile) => (tile.value > maxValue ? tile.value : maxValue), 0)
-//   options = options
-//     .map(option => {
-//       const actions = getMoveTilesActions(option.direction, boardState)
-//       if (actions.length === 0) {
-//         return null
-//       }
-//       return {
-//         density: getActionDensity(actions, boardState),
-//         mergeFrequencies: getActionMergeFrequencies(actions, boardState),
-//         movesMaxValue: actions
-//           .filter(action => action.type === MOVE)
-//           .map(action => boardState[action.fromIndex].value)
-//           .some(value => value === maxValueOnBoard),
-//         actions,
-//         ...option,
-//       }
-//     })
-//     .filter(option => option !== null)
-//
-//   options.sort((a, b) => {
-//     if (a.movesMaxValue !== b.movesMaxValue) return a.movesMaxValue ? 1 : -1
-//     return b.density - a.density
-//   })
-//   return options[0]
-// }
 
 const getEstimatedLeafCount = (boardState, searchDepth) => {
   let emptyTileCount = getEmptyTileCount(boardState)
@@ -139,24 +35,26 @@ const getEstimatedLeafCount = (boardState, searchDepth) => {
   return (4 * 2 * emptyTileCount) ** searchDepth
 }
 
-export const getSearchDepth = boardState => {
-  const TIME_PER_LEAF = 0.001
-  const ALLOWED_TIME = 100
-  for (let i = 2; i < 10; i++) {
+export const getSearchDepth = (boardState) => {
+  const MAX_DEPTH = 10
+  const TIME_PER_LEAF = 0.0001
+  const ALLOWED_TIME = 50
+  for (let i = 2; i < MAX_DEPTH; i += 1) {
     const currentLeafCount = getEstimatedLeafCount(boardState, i)
     const currentEstimate = currentLeafCount * TIME_PER_LEAF
-    if (currentEstimate < ALLOWED_TIME) continue
-    const prevLeafCount = getEstimatedLeafCount(boardState, i - 1)
-    const prevEstimate = prevLeafCount * TIME_PER_LEAF
-    if (currentEstimate - ALLOWED_TIME > ALLOWED_TIME - prevEstimate) {
-      return i - 2
+    if (currentEstimate >= ALLOWED_TIME) {
+      const prevLeafCount = getEstimatedLeafCount(boardState, i - 1)
+      const prevEstimate = prevLeafCount * TIME_PER_LEAF
+      if (currentEstimate - ALLOWED_TIME > ALLOWED_TIME - prevEstimate) {
+        return i - 2
+      }
+      return i - 1
     }
-    return i - 1
   }
-  return i - 1
+  return MAX_DEPTH
 }
 
-export const getEdgeScore = boardState => {
+const getEdgeScore = (boardState) => {
   const size = boardState.length ** 0.5
   let top = 0
   let bottom = 0
@@ -167,7 +65,7 @@ export const getEdgeScore = boardState => {
       const inTop = index < size
       const inBottom = index > size ** 2 - size
       const inLeft = index % size === 0
-      const inRight = index + (1 % size) === 0
+      const inRight = (index + 1) % size === 0
       const value = tile.value ** 2
       if (inTop) top += value
       if (inBottom) bottom += value
@@ -180,7 +78,7 @@ export const getEdgeScore = boardState => {
   return (edges[0] / size) ** 0.5
 }
 
-export const getCornerScore = boardState => {
+const getCornerScore = (boardState) => {
   const size = boardState.length ** 0.5
   let maxValue = 0
   boardState.forEach((tile, index) => {
@@ -189,11 +87,10 @@ export const getCornerScore = boardState => {
     }
   })
   // return (sumOfSquares / cornerCount) ** 0.5
-  return maxValue ** 2
+  return maxValue
 }
 
-export const getBoardAdjacencyScore = boardState => {
-  const size = boardState.length ** 0.5
+const getBoardAdjacencyScore = (boardState, maxValueOnBoard) => {
   return (
     boardState
       .map((tile, index) => {
@@ -201,32 +98,32 @@ export const getBoardAdjacencyScore = boardState => {
         if (!tile.isEmpty) {
           tileValue = tile.value
         }
-        const adjacentIndices = getAdjacentIndices(index, size)
-        return adjacentIndices
-          .map(adjacentIndex => {
+
+        const adjacentTiles = getAdjacentTiles(boardState, index)
+        return adjacentTiles
+          .map((adjacentTile) => {
             let adjacentTileValue = 0
-            const adjacentTile = boardState[adjacentIndex]
-            if (!adjacentTile.isEmpty) {
+            if (adjacentTile && !adjacentTile.isEmpty) {
               adjacentTileValue = adjacentTile.value
             }
             const difference = Math.abs(tileValue - adjacentTileValue)
-            return difference ** 2
+            return (maxValueOnBoard - difference) ** 2
           })
           .reduce((sum, score) => sum + score, 0)
       })
       .reduce((sum, score) => sum + score, 0) **
       0.5 /
-    -boardState.length
+    boardState.length
   )
 }
 
-export const getAdjacentEqualTileScore = boardState => {
+const getAdjacentEqualTileScore = (boardState) => {
   const size = boardState.length ** 0.5
   let sumOfSquares = 0
   boardState.forEach((tile, index) => {
     if (!tile.isEmpty) {
       const adjacentIndices = getAdjacentIndices(index, size)
-      adjacentIndices.forEach(adjacentIndex => {
+      adjacentIndices.forEach((adjacentIndex) => {
         const adjacentTile = boardState[adjacentIndex]
         if (!adjacentTile.isEmpty) {
           const difference = Math.abs(tile.value - adjacentTile.value)
@@ -237,15 +134,16 @@ export const getAdjacentEqualTileScore = boardState => {
       })
     }
   })
-  return (sumOfSquares / (boardState.length * 2)) ** 0.5
+  return (sumOfSquares / boardState.length ** 2) ** 0.5
 }
 
 export const evaluateBoard = (boardState, weights) => {
+  if (isGameOver(boardState)) return 0
   const maxValueOnBoard = maxTileValue(boardState)
   const emptyTileCount = getEmptyTileCount(boardState)
   const scores = {
     density: getBoardDensity(boardState),
-    adjacencyScore: getBoardAdjacencyScore(boardState),
+    adjacencyScore: getBoardAdjacencyScore(boardState, maxValueOnBoard),
     emptyTileCount,
     emptyTileFactor: maxValueOnBoard * Math.log(emptyTileCount),
     edgeScore: getEdgeScore(boardState),
@@ -253,7 +151,10 @@ export const evaluateBoard = (boardState, weights) => {
     adjacentEqualTileScore: getAdjacentEqualTileScore(boardState),
     random: Math.random(),
   }
-  return Object.keys(weights).reduce((sum, metric) => scores[metric] * weights[metric], 0)
+  return (
+    emptyTileCount *
+    Object.keys(weights).reduce((sum, metric) => sum + scores[metric] * weights[metric], 0)
+  )
 }
 
 export const getAllGenerateTileActions = (boardState, newValue) => {
@@ -267,16 +168,16 @@ export const getAllGenerateTileActions = (boardState, newValue) => {
 }
 
 export const lookaheadAlgorithm = (weights, boardState, searchDepth) => {
-  let startTime = performance.now()
+  const startTime = performance.now()
   let leaves = 0
-  const inner = depth => {
+  const inner = (depth) => {
     if (depth === 0) {
       leaves += 1
       const score = evaluateBoard(boardState, weights)
       return { score }
     }
     const options = []
-    DIRECTIONS.forEach(direction => {
+    DIRECTIONS.forEach((direction) => {
       const actions = getMoveTilesActions(direction, boardState)
       if (actions.length === 0) {
         options.push({ direction, score: 0 })
@@ -287,13 +188,13 @@ export const lookaheadAlgorithm = (weights, boardState, searchDepth) => {
       const twoScores = []
       const fourActions = getAllGenerateTileActions(boardState, 4)
       const fourScores = []
-      twoActions.forEach(action => {
+      twoActions.forEach((action) => {
         applyAction(action, boardState)
         const nextMove = inner(depth - 1)
         reverseAction(action, boardState)
         twoScores.push(nextMove.score)
       })
-      fourActions.forEach(action => {
+      fourActions.forEach((action) => {
         applyAction(action, boardState)
         const nextMove = inner(depth - 1)
         reverseAction(action, boardState)
@@ -309,8 +210,8 @@ export const lookaheadAlgorithm = (weights, boardState, searchDepth) => {
   }
 
   const result = inner(searchDepth)
-  let endTime = performance.now()
-  let time = endTime - startTime
+  const endTime = performance.now()
+  const time = endTime - startTime
   console.log(
     'Search Depth: ',
     searchDepth,
@@ -330,7 +231,7 @@ export const useLookaheadAlgorithm = (
   automatedMoveCount,
   gameOver
 ) => {
-  const numWorkers = 50
+  const numWorkers = 100
   const [returnValue, setReturnValue] = useState(undefined)
   const [isCalculating, setIsCalculating] = useState(false)
   const move = useMemo(
@@ -357,22 +258,22 @@ export const useLookaheadAlgorithm = (
   const pendingChildren = useMemo(() => ({}), [])
 
   const workerOnmessage = useCallback(
-    e => {
+    (e) => {
       const { id, parentDirection, newTileValue } = e.data
       delete pendingChildren[id]
       move[parentDirection][newTileValue].push(e.data)
       if (Object.keys(pendingChildren).length === 0) {
         const options = []
-        DIRECTIONS.forEach(direction => {
+        DIRECTIONS.forEach((direction) => {
           if (move[direction][2].length === 0) {
             return
           }
           const averageTwoScore =
-            move[direction][2].reduce((sum, move) => sum + move.score, 0) /
+            move[direction][2].reduce((sum, child) => sum + child.score, 0) /
             move[direction][2].length
           move[direction][2] = []
           const averageFourScore =
-            move[direction][4].reduce((sum, move) => sum + move.score, 0) /
+            move[direction][4].reduce((sum, child) => sum + child.score, 0) /
             move[direction][4].length
           move[direction][4] = []
           options.push({ score: 0.9 * averageTwoScore + 0.1 * averageFourScore, direction })
@@ -387,11 +288,11 @@ export const useLookaheadAlgorithm = (
   )
 
   const getWorkers = useCallback(
-    num => {
+    (num) => {
       console.log('creating new workers')
       const workers = []
-      for (let i = 0; i < num; i++) {
-        const worker = new Worker('./AI.Worker', { type: 'module' })
+      for (let i = 0; i < num; i += 1) {
+        const worker = new Worker('worker.js')
         worker.onmessage = workerOnmessage
         workers.push(worker)
       }
@@ -409,9 +310,9 @@ export const useLookaheadAlgorithm = (
     if (!isCalculating) {
       setIsCalculating(true)
       const searchDepth = getSearchDepth(boardState)
-      console.log('search depth', searchDepth)
+      // console.log('search depth', searchDepth)
       let childrenCount = 0
-      DIRECTIONS.forEach(direction => {
+      DIRECTIONS.forEach((direction) => {
         const actions = getMoveTilesActions(direction, boardState)
         if (actions.length === 0) {
           return
@@ -457,7 +358,7 @@ export const useLookaheadAlgorithm = (
         })
         reverseAllActions(actions, boardState)
       })
-      console.log('children count', childrenCount)
+      // console.log('children count', childrenCount)
     }
   }, [
     weights,

@@ -1,9 +1,7 @@
-const webpack = require('webpack')
 const path = require('path')
-const WorkerPlugin = require('worker-plugin')
 
-const config = {
-  entry: ['react-hot-loader/patch', './src/index.js'],
+const regularConfig = {
+  entry: './src/index.jsx',
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.js',
@@ -34,19 +32,50 @@ const config = {
   },
   resolve: {
     extensions: ['.js', '.jsx'],
-    alias: {
-      'react-dom': '@hot-loader/react-dom',
-    },
   },
   devServer: {
     contentBase: './dist',
+    port: 9000,
   },
-  plugins: [
-    new WorkerPlugin({
-      // use "self" as the global object when receiving hot updates.
-      globalObject: 'self', // <-- this is the default value
-    }),
-  ],
 }
 
-module.exports = config
+const workerConfig = {
+  entry: './src/AI.worker.js',
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'worker.js',
+  },
+  devtool: 'source-map',
+  module: {
+    rules: [
+      {
+        test: /\.(js|jsx)$/,
+        use: 'babel-loader',
+        exclude: /node_modules/,
+      },
+      {
+        test: /\.scss$/,
+        use: [
+          'style-loader',
+          {
+            loader: 'css-loader',
+            options: {
+              importLoaders: 1,
+              modules: true,
+            },
+          },
+          'sass-loader',
+        ],
+      },
+    ],
+  },
+  resolve: {
+    extensions: ['.js', '.jsx'],
+  },
+  devServer: {
+    contentBase: './dist',
+    port: 9000,
+  },
+}
+
+module.exports = [regularConfig, workerConfig]
