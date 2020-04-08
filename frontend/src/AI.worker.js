@@ -8,19 +8,19 @@ import {
 } from './BoardUtils'
 import { evaluateBoard, getSearchDepth, getAllGenerateTileActions } from './AI'
 
-this.addEventListener('message', (e) => {
+self.addEventListener('message', e => {
   const { weights, boardState, searchDepth, id, parentDirection, newTileValue } = e.data
 
   const startTime = performance.now()
   let leaves = 0
-  const inner = (depth) => {
+  const inner = depth => {
     if (depth === 0) {
       leaves += 1
       const score = evaluateBoard(boardState, weights)
       return { score }
     }
     const options = []
-    DIRECTIONS.forEach((direction) => {
+    DIRECTIONS.forEach(direction => {
       const actions = getMoveTilesActions(direction, boardState)
       if (actions.length === 0) {
         options.push({ direction, score: 0 })
@@ -31,13 +31,13 @@ this.addEventListener('message', (e) => {
       const twoScores = []
       const fourActions = getAllGenerateTileActions(boardState, 4)
       const fourScores = []
-      twoActions.forEach((action) => {
+      twoActions.forEach(action => {
         applyAction(action, boardState)
         const nextMove = inner(depth - 1)
         reverseAction(action, boardState)
         twoScores.push(nextMove.score)
       })
-      fourActions.forEach((action) => {
+      fourActions.forEach(action => {
         applyAction(action, boardState)
         const nextMove = inner(depth - 1)
         reverseAction(action, boardState)
@@ -64,5 +64,5 @@ this.addEventListener('message', (e) => {
     ', Time Per 1000 Boards: ',
     (time / leaves) * 1000
   )
-  postMessage({ id, parentDirection, newTileValue, ...result })
+  self.postMessage({ id, parentDirection, newTileValue, ...result })
 })

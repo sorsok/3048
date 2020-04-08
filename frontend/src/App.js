@@ -28,8 +28,8 @@ const App = () => {
 
   const weights = {
     // emptyTileFactor: 1,
-    // density: 2,
-    adjacencyScore: 4,
+    // density: 4,
+    adjacencyScore: 1,
     // adjacentEqualTileScore: 10,
     // cornerScore: 1,
     // edgeScore: 1,
@@ -44,7 +44,7 @@ const App = () => {
   )
 
   const moveTiles = useCallback(
-    (direction) => {
+    direction => {
       const actions = getMoveTilesActions(direction, boardState)
       if (actions.length > 0) {
         setScore(score + applyAllActions(actions, boardState))
