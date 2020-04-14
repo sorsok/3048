@@ -1,6 +1,6 @@
 import React from 'react'
 
-import styles from './GameControls.module.css'
+import styles from './GameControls.scss'
 
 const GameControls = ({runningAlgo, toggleAlgo, resetGame}) => {
 

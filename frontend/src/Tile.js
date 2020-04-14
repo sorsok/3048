@@ -1,6 +1,6 @@
 import React from 'react'
 import classNames from 'classnames'
-import styles from './Tile.module.css'
+import styles from './Tile.scss'
 
 const Tile = ({ value, isEmpty }) => {
   let otherClassName = null

@@ -1,48 +1,49 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import Board from './Board'
 import { useArrowKeys, useToggle } from './utils'
 import GameInfo from './GameInfo'
 import GameControls from './GameControls'
 
-import styles from './App.module.css'
+import styles from './App.scss'
+
 import {
   applyAllActions,
   createInitialBoardState,
   generateNewTile,
   getMoveTilesActions,
   isGameOver,
-  maxTileValue,
 } from './BoardUtils'
-import {
-  evaluateBoard,
-  getAdjacentEqualTileScore,
-  getAI,
-  getBoardAdjacencyScore,
-  getBoardDensity,
-  getCornerScore,
-  getEdgeScore,
-} from './AI'
+import { useLookaheadAlgorithm } from './AI'
 
 const App = () => {
   // App state
-  const [size, setSize] = useState(4)
+  const [size] = useState(4)
   const [gameOver, setGameOver] = useState(false)
   const [moveCount, setMoveCount] = useState(0)
   const [boardState, setBoardState] = useState(createInitialBoardState(size))
   const [score, setScore] = useState(0)
   const [runningAlgo, toggleAlgo] = useToggle(false)
   const [automatedMoveCount, setAutomatedMoveCount] = useState(0)
+  const [moveHistory] = useState([{ score: 0 }])
 
-  const getNextMove = useMemo(
-    () =>
-      getAI({
-        emptyTileFactor: 1,
-        density: 1.5,
-        cornerScore: 1,
-        edgeScore: 1,
-      }),
-    []
+  const weights = {
+    // emptyTileCount: 1,
+    // emptyTileFactor: 1,
+    // density: 1,
+    adjacencyScore: 1,
+    // adjacentEqualTileScore: 10,
+    // cornerScore: 1,
+    // edgeScore: 1,
+  }
+
+  const nextMove = useLookaheadAlgorithm(
+    weights,
+    boardState,
+    runningAlgo,
+    automatedMoveCount,
+    gameOver
   )
+
   const moveTiles = useCallback(
     direction => {
       const actions = getMoveTilesActions(direction, boardState)
@@ -51,12 +52,22 @@ const App = () => {
         setMoveCount(moveCount + 1)
         generateNewTile(boardState)
         setGameOver(isGameOver(boardState))
+      } else {
+        throw Error()
       }
     },
     [boardState, setMoveCount, moveCount, score]
   )
 
   useArrowKeys(moveTiles)
+
+  useEffect(() => {
+    if (nextMove) {
+      moveHistory.push(nextMove)
+      moveTiles(nextMove.direction)
+      setAutomatedMoveCount(automatedMoveCount + 1)
+    }
+  }, [nextMove])
 
   const resetGame = useCallback(() => {
     setBoardState(createInitialBoardState(size))
@@ -67,65 +78,17 @@ const App = () => {
     if (runningAlgo) toggleAlgo()
   }, [setBoardState, setScore, setAutomatedMoveCount, toggleAlgo, runningAlgo, size])
 
-  const stepAlgo = useCallback(async () => {
-    if (!runningAlgo || gameOver) return
-    // await new Promise(resolve => setTimeout(resolve, 0.5))
-    const nextDirection = getNextMove(boardState).direction
-    if (nextDirection) {
-      moveTiles(nextDirection)
-      setAutomatedMoveCount(automatedMoveCount + 1)
-      if (moveCount % 10 === 0) {
-        // toggleAlgo()
-      }
-      return
-    }
-    toggleAlgo()
-  }, [
-    boardState,
-    moveTiles,
-    toggleAlgo,
-    runningAlgo,
-    automatedMoveCount,
-    setAutomatedMoveCount,
-    gameOver,
-    moveCount,
-  ])
-  //
-  // const getStats = useCallback(() => {
-  //   const maxValueOnBoard = maxTileValue(boardState)
-  //   const density = getBoardDensity(boardState)
-  //   const adjacencyScore = getBoardAdjacencyScore(boardState)
-  //   const emptyTileCount = boardState.filter(tile => tile.isEmpty).length
-  //   const emptyTileFactor = maxValueOnBoard * Math.log(emptyTileCount)
-  //   const edgeScore = getEdgeScore(boardState)
-  //   const cornerScore = getCornerScore(boardState)
-  //   const adjacentEqualTileScore = getAdjacentEqualTileScore(boardState)
-  //   return {
-  //     adjacencyScore,
-  //     density,
-  //     emptyTileFactor,
-  //     edgeScore,
-  //     cornerScore,
-  //     adjacentEqualTileScore,
-  //     total: evaluateBoard(boardState),
-  //   }
-  // }, [boardState])
-
-  useEffect(() => {
-    stepAlgo()
-  }, [stepAlgo, moveCount, toggleAlgo])
-
   return (
     <div className={styles.container}>
       <GameInfo
         score={score}
         moveCount={moveCount}
         automatedMoveCount={automatedMoveCount}
-        // stats={getStats()}
+        moveHistory={moveHistory}
       />
       <Board size={size} boardState={boardState} gameOver={gameOver} />
       <GameControls runningAlgo={runningAlgo} toggleAlgo={toggleAlgo} resetGame={resetGame} />
-      {/*<button onClick={runSimulation}>Run Simulation </button>*/}
+      {/* <button onClick={runSimulation}>Run Simulation </button> */}
     </div>
   )
 }

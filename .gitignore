@@ -1,2 +1,15 @@
 node_modules
 .idea
+frontend/testing
+frontend/dist/*
+!frontend/dist/index.html
+*.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

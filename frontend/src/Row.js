@@ -1,5 +1,5 @@
 import React from 'react'
-import styles from './Row.module.css'
+import styles from './Row.scss'
 
 const Row = ({children}) => {
     return (
