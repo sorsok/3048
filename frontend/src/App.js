@@ -27,8 +27,9 @@ const App = () => {
   const [moveHistory] = useState([{ score: 0 }])
 
   const weights = {
+    // emptyTileCount: 1,
     // emptyTileFactor: 1,
-    // density: 4,
+    // density: 1,
     adjacencyScore: 1,
     // adjacentEqualTileScore: 10,
     // cornerScore: 1,

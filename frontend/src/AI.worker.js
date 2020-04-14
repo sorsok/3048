@@ -11,7 +11,6 @@ import { evaluateBoard, getSearchDepth, getAllGenerateTileActions } from './AI'
 self.addEventListener('message', e => {
   const { weights, boardState, searchDepth, id, parentDirection, newTileValue } = e.data
 
-  const startTime = performance.now()
   let leaves = 0
   const inner = depth => {
     if (depth === 0) {
@@ -52,17 +51,6 @@ self.addEventListener('message', e => {
     return options[0]
   }
 
-  const result = inner(searchDepth || getSearchDepth(boardState))
-  const endTime = performance.now()
-  const time = endTime - startTime
-  console.log(
-    'Search Depth: ',
-    searchDepth,
-
-    ', Boards Checked: ',
-    leaves,
-    ', Time Per 1000 Boards: ',
-    (time / leaves) * 1000
-  )
-  self.postMessage({ id, parentDirection, newTileValue, ...result })
+  const result = inner(searchDepth === undefined ? getSearchDepth(boardState) : searchDepth)
+  self.postMessage({ id, parentDirection, newTileValue, leaves, ...result })
 })

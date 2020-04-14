@@ -28,31 +28,31 @@ const getBoardDensity = boardState => {
 }
 
 const getEstimatedLeafCount = (boardState, searchDepth, levelOneChildrenCount) => {
-  return levelOneChildrenCount ** searchDepth
   // let emptyTileCount = getEmptyTileCount(boardState)
-  // if (emptyTileCount < 5) {
+  // if (emptyTileCount < 4) {
   //   emptyTileCount = 0.125 * emptyTileCount ** 2 + 2
   // }
   // return (4 * 2 * emptyTileCount) ** searchDepth
+
+  const adjustedChildrenCount = (levelOneChildrenCount + 200 / searchDepth) / 2
+  return Math.round(adjustedChildrenCount ** searchDepth)
 }
 
 export const getSearchDepth = (boardState, levelOneChildrenCount) => {
   const MAX_DEPTH = 10
-  const TIME_PER_LEAF = 0.0005
+  const TIME_PER_LEAF = 0.005
   const ALLOWED_TIME = 1000
   for (let i = 2; i < MAX_DEPTH; i += 1) {
     const currentLeafCount = getEstimatedLeafCount(boardState, i, levelOneChildrenCount)
     const currentEstimate = currentLeafCount * TIME_PER_LEAF
     if (currentEstimate >= ALLOWED_TIME) {
       const prevLeafCount = getEstimatedLeafCount(boardState, i - 1, levelOneChildrenCount)
-      const prevEstimate = prevLeafCount * TIME_PER_LEAF
-      if (currentEstimate - ALLOWED_TIME > ALLOWED_TIME - prevEstimate) {
-        return i - 2
-      }
-      return i - 1
+      const prevEstimate = currentLeafCount * TIME_PER_LEAF
+      return [i - 2, prevLeafCount, prevEstimate]
     }
   }
-  return MAX_DEPTH
+  const leafCount = getEstimatedLeafCount(boardState, i, levelOneChildrenCount)
+  return [MAX_DEPTH, leafCount, leafCount * TIME_PER_LEAF]
 }
 
 const getEdgeScore = boardState => {
@@ -87,7 +87,6 @@ const getCornerScore = boardState => {
       maxValue = tile.value > maxValue ? tile.value : maxValue
     }
   })
-  // return (sumOfSquares / cornerCount) ** 0.5
   return maxValue
 }
 
@@ -213,7 +212,6 @@ export const lookaheadAlgorithm = (weights, boardState, searchDepth) => {
   console.log(
     'Search Depth: ',
     searchDepth,
-
     ', Boards Checked: ',
     leaves,
     ', Time Per 1000 Boards: ',
@@ -221,6 +219,8 @@ export const lookaheadAlgorithm = (weights, boardState, searchDepth) => {
   )
   return result
 }
+
+let estimate = 0
 
 export const useLookaheadAlgorithm = (
   weights,
@@ -232,6 +232,8 @@ export const useLookaheadAlgorithm = (
   const numWorkers = 100
   const [returnValue, setReturnValue] = useState(undefined)
   const [isCalculating, setIsCalculating] = useState(false)
+  const [startTime, setStartTime] = useState(performance.now())
+
   const move = useMemo(
     () => ({
       LEFT: {
@@ -262,6 +264,7 @@ export const useLookaheadAlgorithm = (
       move[parentDirection][newTileValue].push(e.data)
       if (Object.keys(pendingChildren).length === 0) {
         const options = []
+        let totalLeaves = 0
         DIRECTIONS.forEach(direction => {
           if (move[direction][2].length === 0) {
             return
@@ -269,17 +272,23 @@ export const useLookaheadAlgorithm = (
           const averageTwoScore =
             move[direction][2].reduce((sum, child) => sum + child.score, 0) /
             move[direction][2].length
+          totalLeaves += move[direction][2].reduce((sum, child) => sum + child.leaves, 0)
           move[direction][2] = []
+
           const averageFourScore =
             move[direction][4].reduce((sum, child) => sum + child.score, 0) /
             move[direction][4].length
+          totalLeaves += move[direction][4].reduce((sum, child) => sum + child.leaves, 0)
           move[direction][4] = []
+
           options.push({ score: 0.9 * averageTwoScore + 0.1 * averageFourScore, direction })
         })
         options.sort((a, b) => b.score - a.score)
 
         setReturnValue(options[0])
         setIsCalculating(false)
+
+        move.leaves = totalLeaves
       }
     },
     [pendingChildren, move, setIsCalculating, setReturnValue]
@@ -306,8 +315,8 @@ export const useLookaheadAlgorithm = (
       return
     }
     if (!isCalculating) {
+      setStartTime(performance.now())
       setIsCalculating(true)
-      // console.log('search depth', searchDepth)
       let childrenCount = 0
       const directionActions = {}
       DIRECTIONS.forEach(direction => {
@@ -329,7 +338,24 @@ export const useLookaheadAlgorithm = (
         reverseAllActions(actions, boardState)
         directionActions[direction] = actions
       })
-      const searchDepth = getSearchDepth(boardState, Object.keys(pendingChildren).length)
+      const [searchDepth, leafEstimate, timeEstimate] = getSearchDepth(
+        boardState,
+        Object.keys(pendingChildren).length
+      )
+      console.log(
+        'Search Depth:',
+        searchDepth,
+        'Level 1 Children Count',
+        Object.keys(pendingChildren).length,
+        'Estimated Boards Checked:',
+        leafEstimate,
+        'Estimated Time:',
+        timeEstimate,
+        'Estimated Time Per 1000 Boards',
+        (timeEstimate / leafEstimate) * 1000
+      )
+      estimate = timeEstimate
+
       DIRECTIONS.forEach(direction => {
         const actions = directionActions[direction]
         if (!actions) return
@@ -378,6 +404,21 @@ export const useLookaheadAlgorithm = (
     move,
     pendingChildren,
   ])
+
+  useEffect(() => {
+    if (!isCalculating) {
+      const time = performance.now() - startTime
+      console.log(
+        'Actual Boards Checked:',
+        move.leaves,
+        'Actual Time',
+        time,
+        'Actual Time Per 1000 Boards:',
+        (time / move.leaves) * 1000
+      )
+      console.log(`##-----Time Difference=${time - estimate}-----##`)
+    }
+  }, [isCalculating])
 
   return returnValue
 }
