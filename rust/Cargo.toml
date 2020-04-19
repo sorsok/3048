@@ -4,7 +4,22 @@ version = "0.1.0"
 authors = ["sorsok <mina.sorsok@gmail.com>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = ["console_error_panic_hook"]
 
 [dependencies]
 rand = "0.5.5"
+enum-iterator = "0.6.0"
+console_error_panic_hook = { version = "0.1.1", optional = true }
+serde = "^1.0.59"
+serde_derive = "^1.0.59"
+
+[dependencies.wasm-bindgen]
+version = "^0.2"
+features = ["serde-serialize"]
+
+[dev-dependencies]
+wasm-bindgen-test = "0.2"

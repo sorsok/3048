@@ -33,14 +33,11 @@ const regularConfig = {
   resolve: {
     extensions: ['.js', '.jsx'],
   },
-  devServer: {
-    contentBase: './dist',
-    port: 9000,
-  },
 }
 
 const workerConfig = {
-  entry: './src/AI.worker.js',
+  entry: './src/bootstrap.js',
+  target: 'webworker',
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'worker.js',
@@ -71,10 +68,6 @@ const workerConfig = {
   },
   resolve: {
     extensions: ['.js', '.jsx'],
-  },
-  devServer: {
-    contentBase: './dist',
-    port: 9000,
   },
 }
 

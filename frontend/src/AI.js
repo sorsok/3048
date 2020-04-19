@@ -39,6 +39,27 @@ const getEstimatedLeafCount = (boardState, searchDepth, levelOneChildrenCount) =
 }
 
 export const getSearchDepth = (boardState, levelOneChildrenCount) => {
+  let map = {
+    0: 4,
+    1: 3,
+    2: 2,
+    3: 1,
+    4: 1,
+    5: 1,
+    6: 1,
+    7: 1,
+    8: 1,
+    9: 1,
+    10: 1,
+    11: 1,
+    12: 1,
+    13: 1,
+    14: 1,
+    15: 1,
+  }
+  let emptyTileCount = getEmptyTileCount(boardState)
+  return [map[emptyTileCount], undefined, undefined]
+
   const MAX_DEPTH = 10
   const TIME_PER_LEAF = 0.005
   const ALLOWED_TIME = 1000

@@ -4,6 +4,7 @@ frontend/testing
 frontend/dist/*
 !frontend/dist/index.html
 *.log
+rust/target
 
 # OS generated files
 .DS_Store

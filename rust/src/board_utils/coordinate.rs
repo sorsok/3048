@@ -1,22 +1,34 @@
 extern crate rand;
-
+use enum_iterator::IntoEnumIterator;
 use rand::Rng;
+use std::fmt;
+use wasm_bindgen::prelude::*;
 
 use super::SIZE;
 
-#[derive(Copy, Clone)]
+#[wasm_bindgen]
+#[derive(Copy, Clone, IntoEnumIterator, Debug, Serialize, Deserialize)]
 pub enum Direction {
     UP,
     LEFT,
     RIGHT,
     DOWN,
 }
+
+impl fmt::Display for Direction {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+#[wasm_bindgen]
 #[derive(Hash, Eq, PartialEq, Debug, Copy)]
 pub struct Coordinate {
     x: u32,
     y: u32,
 }
 
+// #[wasm_bindgen]
 impl Coordinate {
     pub fn new(x: u32, y: u32) -> Coordinate {
         Coordinate { x, y }
@@ -43,6 +55,20 @@ impl Coordinate {
             x: rng.gen_range(0, SIZE),
             y: rng.gen_range(0, SIZE),
         }
+    }
+
+    pub fn all_adjacents(&self) -> Vec<Coordinate> {
+        Direction::into_enum_iter()
+            .map(|direction| self.adjacent(&direction))
+            .filter(|x| x.is_some())
+            .map(|x| x.unwrap())
+            .collect()
+    }
+
+    pub fn from_index(index: u32, size: u32) -> Coordinate {
+        let x = index / size;
+        let y = index % size;
+        Coordinate { x, y }
     }
 }
 
