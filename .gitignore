@@ -1,8 +1,8 @@
 node_modules
 .idea
-frontend/testing
-frontend/dist/*
-!frontend/dist/index.html
+js/testing
+js/dist/*
+!js/dist/index.html
 *.log
 rust/target
 

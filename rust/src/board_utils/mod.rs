@@ -369,28 +369,3 @@ impl Board {
             .collect()
     }
 }
-
-// #[macro_export]
-// macro_rules! process_children {
-//     ( $( $x:expr ),* ) => {
-//         {
-//
-//         |acc, action| {
-//                                 self.apply_action(&action);
-//                                 let child_move = self.recursive_lookahead(depth - 1);
-//                                 self.reverse_action(&action);
-//                                 Move {
-//                                     direction: child_move.direction,
-//                                     score: acc.score + child_move.score,
-//                                     leaves: acc.leaves + child_move.leaves,
-//                                 }
-//                             }
-//
-//             let mut temp_vec = Vec::new();
-//             $(
-//                 temp_vec.push($x);
-//             )*
-//             temp_vec
-//         }
-//     };
-// }

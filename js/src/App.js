@@ -30,10 +30,11 @@ const App = () => {
     // emptyTileCount: 1,
     // emptyTileFactor: 1,
     // density: 1,
-    adjacencyScore: 1,
     // adjacentEqualTileScore: 10,
     // cornerScore: 1,
     // edgeScore: 1,
+    // scoring function works best with only this metric
+    adjacencyScore: 1,
   }
 
   const nextMove = useLookaheadAlgorithm(
@@ -45,7 +46,7 @@ const App = () => {
   )
 
   const moveTiles = useCallback(
-    direction => {
+    (direction) => {
       const actions = getMoveTilesActions(direction, boardState)
       if (actions.length > 0) {
         setScore(score + applyAllActions(actions, boardState))
@@ -80,15 +81,9 @@ const App = () => {
 
   return (
     <div className={styles.container}>
-      <GameInfo
-        score={score}
-        moveCount={moveCount}
-        automatedMoveCount={automatedMoveCount}
-        moveHistory={moveHistory}
-      />
+      <GameInfo score={score} moveCount={moveCount} automatedMoveCount={automatedMoveCount} />
       <Board size={size} boardState={boardState} gameOver={gameOver} />
       <GameControls runningAlgo={runningAlgo} toggleAlgo={toggleAlgo} resetGame={resetGame} />
-      {/* <button onClick={runSimulation}>Run Simulation </button> */}
     </div>
   )
 }

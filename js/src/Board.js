@@ -6,15 +6,15 @@ import styles from './Board.scss'
 
 const Board = ({ size, boardState, gameOver }) => {
   const renderRows = useCallback(
-    boardState => {
+    (boardState) => {
       const rows = []
       for (let rowNum = 0; rowNum < size; rowNum++) {
         const row = []
         for (let colNum = 0; colNum < size; colNum++) {
           const tile = boardState[rowNum * size + colNum]
-          row.push(<Tile {...tile} />)
+          row.push(<Tile key={`${rowNum}-${colNum}`} {...tile} />)
         }
-        rows.push(<Row>{row}</Row>)
+        rows.push(<Row key={rowNum}>{row}</Row>)
       }
       return rows
     },

@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  web:
+    image: nginx
+    volumes:
+     - ./js/dist:/usr/share/nginx/html
+     - ./nginx/mime.types:/etc/nginx/mime.types
+    ports:
+     - "8080:80"
+
+
