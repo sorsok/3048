@@ -1,5 +1,5 @@
 [package]
-name = "3048"
+name = "ai_3048"
 version = "0.1.0"
 authors = ["sorsok <mina.sorsok@gmail.com>"]
 edition = "2018"

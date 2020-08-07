@@ -11,6 +11,7 @@ use enum_iterator::IntoEnumIterator;
 use std::collections::HashMap;
 use tile::Tile;
 use wasm_bindgen::prelude::*;
+
 const SIZE: u32 = 4;
 
 enum Action {
@@ -285,7 +286,7 @@ impl Board {
 
     pub fn evaluate(&self) -> f32 {
         if self.game_over() {
-            return -100.0;
+            return -10000000.0;
         }
         let max_tile_value = self.max_tile_value() as f32;
         let sum = self.tile_map.values().fold(0.0, |total_sum, tile| {
