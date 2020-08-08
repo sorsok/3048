@@ -192,6 +192,8 @@ export const lookaheadAlgorithm = (weights, boardState, searchDepth) => {
   return result
 }
 
+const rows = []
+
 export const useLookaheadAlgorithm = (
   weights,
   boardState,
@@ -199,7 +201,7 @@ export const useLookaheadAlgorithm = (
   automatedMoveCount,
   gameOver
 ) => {
-  const numWorkers = 100
+  const numWorkers = 20
   const [returnValue, setReturnValue] = useState(undefined)
   const [isCalculating, setIsCalculating] = useState(false)
   const [startTime, setStartTime] = useState(performance.now())
@@ -266,7 +268,7 @@ export const useLookaheadAlgorithm = (
 
   const getWorkers = useCallback(
     (num) => {
-      console.log('creating new workers')
+      console.log(`creating ${num} workers`)
       const workers = []
       for (let i = 0; i < num; i += 1) {
         const worker = new Worker('worker.js')
@@ -282,6 +284,18 @@ export const useLookaheadAlgorithm = (
 
   useEffect(() => {
     if (!runningAlgo || gameOver) {
+      if (rows.length) {
+        console.log('downloading csv')
+        let csvContent = 'data:text/csv;charset=utf-8,'
+        csvContent += 'leaves, time\n'
+        csvContent += rows.map((e) => e.join(',')).join('\n')
+        const encodedUri = encodeURI(csvContent)
+        const link = document.createElement('a')
+        link.setAttribute('href', encodedUri)
+        link.setAttribute('download', `stats-${new Date().toString()}.csv`)
+        document.body.appendChild(link)
+        link.click()
+      }
       return
     }
     if (!isCalculating) {
@@ -308,13 +322,7 @@ export const useLookaheadAlgorithm = (
         reverseAllActions(actions, boardState)
         directionActions[direction] = actions
       })
-      const searchDepth = 1
-      console.log(
-        'Search Depth:',
-        searchDepth,
-        'Level 1 Children Count',
-        Object.keys(pendingChildren).length
-      )
+      const searchDepth = 2
       DIRECTIONS.forEach((direction) => {
         const actions = directionActions[direction]
         if (!actions) return
@@ -367,14 +375,7 @@ export const useLookaheadAlgorithm = (
   useEffect(() => {
     if (!isCalculating) {
       const time = performance.now() - startTime
-      console.log(
-        'Actual Boards Checked:',
-        move.leaves,
-        'Actual Time',
-        time,
-        'Actual Time Per 1000 Boards:',
-        (time / move.leaves) * 1000
-      )
+      rows.push([move.leaves, time])
     }
   }, [isCalculating])
 
