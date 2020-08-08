@@ -1,13 +1,11 @@
-// Commands to build wasm code and move package to node_modules
-// wasm-pack build
-// fswatch -o rust/pkg | xargs -n1 -I{} rsync -r rust/pkg/ js/node_modules/wasm-3048
+mod MCTSearch;
+mod board_utils;
 
 extern crate wasm_bindgen;
 #[macro_use]
 extern crate serde_derive;
 
 use wasm_bindgen::prelude::*;
-mod board_utils;
 
 use board_utils::{Board, Move};
 

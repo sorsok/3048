@@ -1,10 +1,14 @@
 extern crate rand;
 use enum_iterator::IntoEnumIterator;
-use rand::Rng;
 use std::fmt;
 use wasm_bindgen::prelude::*;
 
 use super::SIZE;
+
+use rand::{
+    distributions::{Distribution, Standard},
+    Rng,
+};
 
 #[wasm_bindgen]
 #[derive(Copy, Clone, IntoEnumIterator, Debug, Serialize, Deserialize)]
@@ -13,6 +17,17 @@ pub enum Direction {
     LEFT,
     RIGHT,
     DOWN,
+}
+
+impl Distribution<Direction> for Standard {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Direction {
+        match rng.gen_range(0, 4) {
+            0 => Direction::UP,
+            1 => Direction::LEFT,
+            2 => Direction::RIGHT,
+            _ => Direction::DOWN,
+        }
+    }
 }
 
 impl fmt::Display for Direction {

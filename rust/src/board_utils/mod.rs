@@ -8,6 +8,7 @@ use super::log;
 use coordinate::Coordinate;
 pub use coordinate::Direction;
 use enum_iterator::IntoEnumIterator;
+use rand::{seq::IteratorRandom, thread_rng};
 use std::collections::HashMap;
 use tile::Tile;
 use wasm_bindgen::prelude::*;
@@ -203,7 +204,7 @@ impl Board {
         coordinates
     }
 
-    pub fn move_tiles(&mut self, direction: &Direction) -> Option<Vec<Action>> {
+    fn move_tiles(&mut self, direction: &Direction) -> Option<Vec<Action>> {
         let coordinates = Board::get_coordinate_traversal_order(direction);
         let mut actions = Vec::new();
         for coordinate in coordinates {
@@ -263,7 +264,7 @@ impl Board {
             .collect()
     }
 
-    pub fn game_over(&self) -> bool {
+    fn game_over(&self) -> bool {
         if self.empty_tiles_iter().count() > 0 {
             return false;
         }
@@ -284,7 +285,7 @@ impl Board {
             })
     }
 
-    pub fn evaluate(&self) -> f32 {
+    fn evaluate(&self) -> f32 {
         if self.game_over() {
             return -10000000.0;
         }
@@ -368,5 +369,30 @@ impl Board {
                 coordinate: tile.coordinate(),
             })
             .collect()
+    }
+
+    fn get_random_generate_action(&self) -> Action {
+        let mut rng = thread_rng();
+        let tile = self.empty_tiles_iter().choose(&mut rng).unwrap();
+        Action::GENERATE {
+            coordinate: tile.coordinate(),
+            value: 2,
+        }
+    }
+
+    pub fn rollout(&mut self) -> u32 {
+        let mut actions = Vec::new();
+        while !self.game_over() {
+            let direction: Direction = rand::random();
+            if let Some(x) = self.move_tiles(&direction) {
+                actions.extend(x);
+            }
+            let generate_action = self.get_random_generate_action();
+            self.apply_action(&generate_action);
+            actions.push(generate_action)
+        }
+        let value = self.points;
+        self.reverse_actions(&actions);
+        value
     }
 }
