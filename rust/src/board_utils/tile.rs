@@ -3,7 +3,7 @@ use rand::Rng;
 
 use super::coordinate::Coordinate;
 
-#[derive(Hash, Eq, PartialEq, Debug)]
+#[derive(Hash, Eq, PartialEq, Debug, Clone)]
 pub struct Tile {
     coordinate: Coordinate,
     pub value: u32,

@@ -4,7 +4,6 @@ mod coordinate;
 mod tests;
 mod tile;
 
-use super::log;
 use coordinate::Coordinate;
 pub use coordinate::Direction;
 use enum_iterator::IntoEnumIterator;
@@ -54,7 +53,7 @@ impl Move {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Board {
     pub size: u32,
     pub points: u32,
@@ -241,8 +240,11 @@ impl Board {
     }
 
     fn empty_tiles_iter(&self) -> impl Iterator<Item = &Tile> {
-        //cache somehow
         self.tile_map.values().filter(|&tile| tile.value == 0)
+    }
+
+    pub fn empty_coordinates_iter(&self) -> impl Iterator<Item = Coordinate> + '_ {
+        self.empty_tiles_iter().map(|tile| tile.coordinate())
     }
 
     fn adjacent_tiles(&self, tile: &Tile) -> Vec<&Tile> {
@@ -394,5 +396,20 @@ impl Board {
         let value = self.points;
         self.reverse_actions(&actions);
         value
+    }
+
+    pub fn generate_children(&mut self) -> Vec<(Board, Direction)> {
+        let mut children = vec![];
+        for direction in Direction::into_enum_iter() {
+            if let Some(move_actions) = self.move_tiles(&direction) {
+                for action in self.get_generate_actions(2) {
+                    self.apply_action(&action);
+                    children.push((self.clone(), direction));
+                    self.reverse_action(&action);
+                }
+                self.reverse_actions(&move_actions);
+            }
+        }
+        children
     }
 }

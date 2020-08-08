@@ -11,7 +11,7 @@ use rand::{
 };
 
 #[wasm_bindgen]
-#[derive(Copy, Clone, IntoEnumIterator, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, IntoEnumIterator, Debug, Serialize, Deserialize, PartialEq)]
 pub enum Direction {
     UP,
     LEFT,
