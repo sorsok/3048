@@ -201,86 +201,23 @@ export const useLookaheadAlgorithm = (
   automatedMoveCount,
   gameOver
 ) => {
-  const numWorkers = 20
   const [returnValue, setReturnValue] = useState(undefined)
   const [isCalculating, setIsCalculating] = useState(false)
   const [startTime, setStartTime] = useState(performance.now())
 
-  const move = useMemo(
-    () => ({
-      LEFT: {
-        2: [],
-        4: [],
-      },
-      RIGHT: {
-        2: [],
-        4: [],
-      },
-      UP: {
-        2: [],
-        4: [],
-      },
-      DOWN: {
-        2: [],
-        4: [],
-      },
-    }),
-    []
-  )
-  const pendingChildren = useMemo(() => ({}), [])
-
   const workerOnmessage = useCallback(
     (e) => {
-      const { id, parentDirection, newTileValue } = e.data
-      delete pendingChildren[id]
-      move[parentDirection][newTileValue].push(e.data)
-      if (Object.keys(pendingChildren).length === 0) {
-        const options = []
-        let totalLeaves = 0
-        DIRECTIONS.forEach((direction) => {
-          if (move[direction][2].length === 0) {
-            return
-          }
-          const averageTwoScore =
-            move[direction][2].reduce((sum, child) => sum + child.score, 0) /
-            move[direction][2].length
-          totalLeaves += move[direction][2].reduce((sum, child) => sum + child.leaves, 0)
-          move[direction][2] = []
-
-          const averageFourScore =
-            move[direction][4].reduce((sum, child) => sum + child.score, 0) /
-            move[direction][4].length
-          totalLeaves += move[direction][4].reduce((sum, child) => sum + child.leaves, 0)
-          move[direction][4] = []
-
-          options.push({ score: 0.9 * averageTwoScore + 0.1 * averageFourScore, direction })
-        })
-        options.sort((a, b) => b.score - a.score)
-
-        setReturnValue(options[0])
-        setIsCalculating(false)
-
-        move.leaves = totalLeaves
-      }
+      setReturnValue(e.data)
+      setIsCalculating(false)
     },
-    [pendingChildren, move, setIsCalculating, setReturnValue]
+    [setIsCalculating, setReturnValue]
   )
 
-  const getWorkers = useCallback(
-    (num) => {
-      console.log(`creating ${num} workers`)
-      const workers = []
-      for (let i = 0; i < num; i += 1) {
-        const worker = new Worker('worker.js')
-        worker.onmessage = workerOnmessage
-        workers.push(worker)
-      }
-      return workers
-    },
-    [workerOnmessage]
-  )
-
-  const workers = useMemo(() => getWorkers(numWorkers), [getWorkers])
+  const worker = useMemo(() => {
+    const wrkr = new Worker('worker.js')
+    wrkr.onmessage = workerOnmessage
+    return wrkr
+  }, [])
 
   useEffect(() => {
     if (!runningAlgo || gameOver) {
@@ -301,81 +238,14 @@ export const useLookaheadAlgorithm = (
     if (!isCalculating) {
       setStartTime(performance.now())
       setIsCalculating(true)
-      let childrenCount = 0
-      const directionActions = {}
-      DIRECTIONS.forEach((direction) => {
-        const actions = getMoveTilesActions(direction, boardState)
-        if (actions.length === 0) {
-          return
-        }
-        applyAllActions(actions, boardState)
-        const twoActions = getAllGenerateTileActions(boardState, 2)
-        const fourActions = getAllGenerateTileActions(boardState, 4)
-        twoActions.forEach((action, index) => {
-          const id = `${direction}-2-${index}`
-          pendingChildren[id] = true
-        })
-        fourActions.forEach((action, index) => {
-          const id = `${direction}-4-${index}`
-          pendingChildren[id] = true
-        })
-        reverseAllActions(actions, boardState)
-        directionActions[direction] = actions
-      })
-      const searchDepth = 2
-      DIRECTIONS.forEach((direction) => {
-        const actions = directionActions[direction]
-        if (!actions) return
-        applyAllActions(actions, boardState)
-        const twoActions = getAllGenerateTileActions(boardState, 2)
-        const fourActions = getAllGenerateTileActions(boardState, 4)
-        twoActions.forEach((action, index) => {
-          applyAction(action, boardState)
-          const id = `${direction}-2-${index}`
-          workers[childrenCount % numWorkers].postMessage({
-            weights,
-            boardState,
-            searchDepth,
-            id,
-            parentDirection: direction,
-            newTileValue: 2,
-          })
-          reverseAction(action, boardState)
-          childrenCount += 1
-        })
-        fourActions.forEach((action, index) => {
-          applyAction(action, boardState)
-          const id = `${direction}-4-${index}`
-          workers[childrenCount % numWorkers].postMessage({
-            weights,
-            boardState,
-            searchDepth,
-            id,
-            parentDirection: direction,
-            newTileValue: 4,
-          })
-          childrenCount += 1
-          reverseAction(action, boardState)
-        })
-        reverseAllActions(actions, boardState)
-      })
+      worker.postMessage({ boardState })
     }
-  }, [
-    weights,
-    boardState,
-    runningAlgo,
-    automatedMoveCount,
-    workers,
-    isCalculating,
-    setIsCalculating,
-    move,
-    pendingChildren,
-  ])
+  }, [weights, boardState, runningAlgo, automatedMoveCount, isCalculating, setIsCalculating])
 
   useEffect(() => {
     if (!isCalculating) {
       const time = performance.now() - startTime
-      rows.push([move.leaves, time])
+      rows.push([time])
     }
   }, [isCalculating])
 

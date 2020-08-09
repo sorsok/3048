@@ -71,16 +71,34 @@ fn move_tiles() {
             _ => 0,
         };
         assert_eq!(
-            board
-                .tile_map
-                .get(&Coordinate::new(x, 0))
-                .expect("tile not found")
-                .value,
+            board.tile_map.get(&Coordinate::new(x, 0)).unwrap().value,
             expected_value
         );
     }
     let board_sum: u32 = board.tile_map.values().map(|x| x.value).sum();
     assert_eq!(board_sum, SIZE * 2);
+}
+
+#[test]
+fn move_tiles_invalid_direction() {
+    // ++++
+    // ++++
+    // ++++
+    // 2222
+
+    let mut board = Board::empty();
+    let mut actions = Vec::new();
+    for x in 0..SIZE {
+        actions.push(Action::GENERATE {
+            coordinate: Coordinate::new(x, 0),
+            value: 2,
+        })
+    }
+    board.apply_actions(&actions);
+    match board.move_tiles(&Direction::DOWN) {
+        Some(_) => panic!("There is no valid move in this direction"),
+        None => {}
+    }
 }
 
 #[test]

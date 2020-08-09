@@ -5,13 +5,11 @@ use wasm_bindgen::prelude::*;
 
 use super::SIZE;
 
-use rand::{
-    distributions::{Distribution, Standard},
-    Rng,
-};
+use rand::distributions::{Distribution, Standard};
+use rand::Rng;
 
 #[wasm_bindgen]
-#[derive(Copy, Clone, IntoEnumIterator, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Copy, Clone, IntoEnumIterator, Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum Direction {
     UP,
     LEFT,
@@ -37,7 +35,7 @@ impl fmt::Display for Direction {
 }
 
 #[wasm_bindgen]
-#[derive(Hash, Eq, PartialEq, Debug, Copy)]
+#[derive(Hash, Eq, PartialEq, Debug, Copy, Clone)]
 pub struct Coordinate {
     x: u32,
     y: u32,
@@ -81,17 +79,10 @@ impl Coordinate {
     }
 
     pub fn from_index(index: u32, size: u32) -> Coordinate {
-        let x = index / size;
-        let y = index % size;
+        // 4 - x:0, y:2
+        // 14 - x:2, y:0
+        let x = index % size;
+        let y = size - (index / size) - 1;
         Coordinate { x, y }
-    }
-}
-
-impl Clone for Coordinate {
-    fn clone(&self) -> Coordinate {
-        Coordinate {
-            x: self.x,
-            y: self.y,
-        }
     }
 }

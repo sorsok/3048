@@ -1,5 +1,5 @@
 extern crate rand;
-use rand::Rng;
+use rand::prelude::*;
 
 use super::coordinate::Coordinate;
 

@@ -1,42 +1,29 @@
-mod MCTSearch;
 mod board_utils;
-
+mod mct_search;
 extern crate wasm_bindgen;
 #[macro_use]
 extern crate serde_derive;
-
+use crate::board_utils::Board;
+use crate::mct_search::MCTree;
 use wasm_bindgen::prelude::*;
 
-use crate::MCTSearch::MCTNode;
-use board_utils::{Board, Move};
-
-// #[wasm_bindgen]
-// extern "C" {
-//     #[wasm_bindgen(js_namespace = console)]
-//     fn log(s: &str);
-// }
-//
-// macro_rules! console_log {
-//     // Note that this is using the `log` function imported above during
-//     // `bare_bones`
-//     ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
-// }
-
-extern crate web_sys;
-
-// A macro to provide `println!(..)`-style syntax for `console.log` logging.
-macro_rules! log {
-    ( $( $t:tt )* ) => {
-        web_sys::console::log_1(&format!( $( $t )* ).into());
-    }
-}
+const SEARCH_ITERATIONS: i32 = 100;
+const EXPLORATION_PARAMETER: f64 = 1.41;
 
 #[wasm_bindgen]
-pub fn search(js_board: &JsValue, depth: u32) -> JsValue {
-    let mut board = Board::from_js(js_board);
-    let mut root_node = MCTNode::new(board, None);
-    root_node.perform_search_iteration();
-    log!("hi from rust!");
-    let next_move = root_node.get_best_move();
+pub fn search(js_board: &JsValue) -> JsValue {
+    let board = Board::from_js(js_board);
+    let mut tree = MCTree::new();
+    tree.new_node(board, None, None);
+    log!(
+        "Iterations: {:?} , Exploration parameter: {:?}",
+        SEARCH_ITERATIONS,
+        EXPLORATION_PARAMETER
+    );
+    for _ in 0..SEARCH_ITERATIONS {
+        tree.perform_search_iteration();
+    }
+    let next_move = tree.get_best_move();
+    log!("Next Move: {:#?}", next_move);
     JsValue::from_serde(&next_move).unwrap()
 }

@@ -7,10 +7,20 @@ mod tile;
 use coordinate::Coordinate;
 pub use coordinate::Direction;
 use enum_iterator::IntoEnumIterator;
-use rand::{seq::IteratorRandom, thread_rng};
+use rand::prelude::*;
 use std::collections::HashMap;
 use tile::Tile;
 use wasm_bindgen::prelude::*;
+
+extern crate web_sys;
+
+// A macro to provide `println!(..)`-style syntax for `console.log` logging.
+#[macro_export]
+macro_rules! log {
+    ( $( $t:tt )* ) => {
+        web_sys::console::log_1(&format!( $( $t )* ).into());
+    }
+}
 
 const SIZE: u32 = 4;
 
@@ -21,7 +31,7 @@ enum Action {
 }
 
 #[wasm_bindgen]
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Move {
     direction: Option<Direction>,
     score: f32,
@@ -208,9 +218,12 @@ impl Board {
         let mut actions = Vec::new();
         for coordinate in coordinates {
             let mut current = coordinate;
-            let mut current_value = self.tile_map.get_mut(&current).unwrap().value;
+            let mut current_value = self.tile_map.get(&current).unwrap().value;
+            if current_value == 0 {
+                continue;
+            }
             while let Some(adjacent) = current.adjacent(&direction) {
-                let adjacent_value = self.tile_map.get_mut(&adjacent).unwrap().value;
+                let adjacent_value = self.tile_map.get(&adjacent).unwrap().value;
                 if adjacent_value == current_value {
                     let action = Action::MERGE {
                         to: adjacent,
@@ -233,18 +246,15 @@ impl Board {
                 current = adjacent;
             }
         }
-        match actions.len() {
-            x if x == 0 => None,
-            _ => Some(actions),
+        if actions.len() > 0 {
+            Some(actions)
+        } else {
+            None
         }
     }
 
     fn empty_tiles_iter(&self) -> impl Iterator<Item = &Tile> {
         self.tile_map.values().filter(|&tile| tile.value == 0)
-    }
-
-    pub fn empty_coordinates_iter(&self) -> impl Iterator<Item = Coordinate> + '_ {
-        self.empty_tiles_iter().map(|tile| tile.coordinate())
     }
 
     fn adjacent_tiles(&self, tile: &Tile) -> Vec<&Tile> {
@@ -374,7 +384,7 @@ impl Board {
     }
 
     fn get_random_generate_action(&self) -> Action {
-        let mut rng = thread_rng();
+        let mut rng = rand::thread_rng();
         let tile = self.empty_tiles_iter().choose(&mut rng).unwrap();
         Action::GENERATE {
             coordinate: tile.coordinate(),
@@ -388,28 +398,30 @@ impl Board {
             let direction: Direction = rand::random();
             if let Some(x) = self.move_tiles(&direction) {
                 actions.extend(x);
+                let generate_action = self.get_random_generate_action();
+                self.apply_action(&generate_action);
+                actions.push(generate_action);
             }
-            let generate_action = self.get_random_generate_action();
-            self.apply_action(&generate_action);
-            actions.push(generate_action)
         }
         let value = self.points;
         self.reverse_actions(&actions);
         value
     }
 
-    pub fn generate_children(&mut self) -> Vec<(Board, Direction)> {
+    pub fn generate_children(&self) -> Vec<(Board, Direction)> {
         let mut children = vec![];
         for direction in Direction::into_enum_iter() {
-            if let Some(move_actions) = self.move_tiles(&direction) {
-                for action in self.get_generate_actions(2) {
-                    self.apply_action(&action);
-                    children.push((self.clone(), direction));
-                    self.reverse_action(&action);
+            let mut board_copy = self.clone();
+            if let Some(_) = board_copy.move_tiles(&direction) {
+                for action in board_copy.get_generate_actions(2) {
+                    board_copy.apply_action(&action);
+                    children.push((board_copy.clone(), direction));
+                    board_copy.reverse_action(&action);
                 }
-                self.reverse_actions(&move_actions);
             }
         }
+        let child_directions: Vec<_> = children.iter().map(|a| a.1).collect();
+        //log!("child directions: {:#?}", child_directions);
         children
     }
 }
