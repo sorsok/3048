@@ -13,7 +13,7 @@ impl Tile {
     pub fn new(coordinate: Coordinate, value: u32) -> Tile {
         Tile { coordinate, value }
     }
-    fn random_value() -> u32 {
+    pub fn random_value() -> u32 {
         let mut rng = rand::thread_rng();
         match rng.gen::<f32>() {
             x if x > 0.9 => 4,

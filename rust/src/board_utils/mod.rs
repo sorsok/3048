@@ -298,9 +298,9 @@ impl Board {
     }
 
     fn evaluate(&self) -> f32 {
-        if self.game_over() {
-            return -10000000.0;
-        }
+        // if self.game_over() {
+        //     return -10000000.0;
+        // }
         let max_tile_value = self.max_tile_value() as f32;
         let sum = self.tile_map.values().fold(0.0, |total_sum, tile| {
             total_sum
@@ -388,11 +388,12 @@ impl Board {
         let tile = self.empty_tiles_iter().choose(&mut rng).unwrap();
         Action::GENERATE {
             coordinate: tile.coordinate(),
-            value: 2,
+            value: Tile::random_value(),
         }
     }
 
-    pub fn rollout(&mut self) -> u32 {
+    pub fn rollout(&mut self) -> f32 {
+        // return self.evaluate();
         let mut actions = Vec::new();
         while !self.game_over() {
             let direction: Direction = rand::random();
@@ -405,7 +406,7 @@ impl Board {
         }
         let value = self.points;
         self.reverse_actions(&actions);
-        value
+        value as f32
     }
 
     pub fn generate_children(&self) -> Vec<(Board, Direction)> {

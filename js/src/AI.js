@@ -195,7 +195,7 @@ export const lookaheadAlgorithm = (weights, boardState, searchDepth) => {
 const rows = []
 
 export const useLookaheadAlgorithm = (
-  weights,
+  config,
   boardState,
   runningAlgo,
   automatedMoveCount,
@@ -221,26 +221,26 @@ export const useLookaheadAlgorithm = (
 
   useEffect(() => {
     if (!runningAlgo || gameOver) {
-      if (rows.length) {
-        console.log('downloading csv')
-        let csvContent = 'data:text/csv;charset=utf-8,'
-        csvContent += 'leaves, time\n'
-        csvContent += rows.map((e) => e.join(',')).join('\n')
-        const encodedUri = encodeURI(csvContent)
-        const link = document.createElement('a')
-        link.setAttribute('href', encodedUri)
-        link.setAttribute('download', `stats-${new Date().toString()}.csv`)
-        document.body.appendChild(link)
-        link.click()
-      }
+      // if (rows.length) {
+      //   console.log('downloading csv')
+      //   let csvContent = 'data:text/csv;charset=utf-8,'
+      //   csvContent += 'leaves, time\n'
+      //   csvContent += rows.map((e) => e.join(',')).join('\n')
+      //   const encodedUri = encodeURI(csvContent)
+      //   const link = document.createElement('a')
+      //   link.setAttribute('href', encodedUri)
+      //   link.setAttribute('download', `stats-${new Date().toString()}.csv`)
+      //   document.body.appendChild(link)
+      //   link.click()
+      // }
       return
     }
     if (!isCalculating) {
       setStartTime(performance.now())
       setIsCalculating(true)
-      worker.postMessage({ boardState })
+      worker.postMessage({ boardState, config })
     }
-  }, [weights, boardState, runningAlgo, automatedMoveCount, isCalculating, setIsCalculating])
+  }, [config, boardState, runningAlgo, automatedMoveCount, isCalculating, setIsCalculating])
 
   useEffect(() => {
     if (!isCalculating) {

@@ -3,6 +3,7 @@ import Board from './Board'
 import { useArrowKeys, useToggle } from './utils'
 import GameInfo from './GameInfo'
 import GameControls from './GameControls'
+import ConfigManagement from './ConfigManagement.js'
 
 import styles from './App.scss'
 
@@ -24,21 +25,14 @@ const App = () => {
   const [score, setScore] = useState(0)
   const [runningAlgo, toggleAlgo] = useToggle(false)
   const [automatedMoveCount, setAutomatedMoveCount] = useState(0)
+  const [config, setConfig] = useState({
+    iterations: 50,
+    exploration: 50,
+  })
   const [moveHistory] = useState([{ score: 0 }])
 
-  const weights = {
-    // emptyTileCount: 1,
-    // emptyTileFactor: 1,
-    // density: 1,
-    // adjacentEqualTileScore: 10,
-    // cornerScore: 1,
-    // edgeScore: 1,
-    // scoring function works best with only this metric
-    adjacencyScore: 1,
-  }
-
   const nextMove = useLookaheadAlgorithm(
-    weights,
+    config,
     boardState,
     runningAlgo,
     automatedMoveCount,
@@ -82,8 +76,11 @@ const App = () => {
   return (
     <div className={styles.container}>
       <GameInfo score={score} moveCount={moveCount} automatedMoveCount={automatedMoveCount} />
-      <Board size={size} boardState={boardState} gameOver={gameOver} />
-      <GameControls runningAlgo={runningAlgo} toggleAlgo={toggleAlgo} resetGame={resetGame} />
+      <div className={styles.boardContainer}>
+        <Board size={size} boardState={boardState} gameOver={gameOver} />
+        <GameControls runningAlgo={runningAlgo} toggleAlgo={toggleAlgo} resetGame={resetGame} />
+        <ConfigManagement setConfig={setConfig} config={config} />
+      </div>
     </div>
   )
 }
