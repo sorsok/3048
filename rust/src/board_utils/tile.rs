@@ -6,7 +6,7 @@ use super::coordinate::Coordinate;
 #[derive(Hash, Eq, PartialEq, Debug)]
 pub struct Tile {
     coordinate: Coordinate,
-    pub value: u32,
+    pub value: u32, // 0 is empty tile
 }
 
 impl Tile {

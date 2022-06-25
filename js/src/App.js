@@ -20,6 +20,7 @@ const App = () => {
   const [size] = useState(4)
   const [gameOver, setGameOver] = useState(false)
   const [moveCount, setMoveCount] = useState(0)
+  const [playOnce, setPlayOnce] = useToggle(false)
   const [boardState, setBoardState] = useState(createInitialBoardState(size))
   const [score, setScore] = useState(0)
   const [runningAlgo, toggleAlgo] = useToggle(false)
@@ -34,16 +35,26 @@ const App = () => {
     // cornerScore: 1,
     // edgeScore: 1,
     // scoring function works best with only this metric
-    adjacencyScore: 1,
+    // adjacencyScore: 1,
+    inversionScore: 1,
   }
 
   const nextMove = useLookaheadAlgorithm(
     weights,
     boardState,
-    runningAlgo,
+    runningAlgo || playOnce,
     automatedMoveCount,
     gameOver
   )
+  useEffect(() => {
+    if (playOnce){
+      setPlayOnce(false)
+    }
+  }, [nextMove])
+
+  const runAlgoOnce = useCallback(()=>{
+    setPlayOnce(true)
+  })
 
   const moveTiles = useCallback(
     (direction) => {
@@ -70,6 +81,8 @@ const App = () => {
     }
   }, [nextMove])
 
+
+
   const resetGame = useCallback(() => {
     setBoardState(createInitialBoardState(size))
     setScore(0)
@@ -83,7 +96,7 @@ const App = () => {
     <div className={styles.container}>
       <GameInfo score={score} moveCount={moveCount} automatedMoveCount={automatedMoveCount} />
       <Board size={size} boardState={boardState} gameOver={gameOver} />
-      <GameControls runningAlgo={runningAlgo} toggleAlgo={toggleAlgo} resetGame={resetGame} />
+      <GameControls runningAlgo={runningAlgo} toggleAlgo={toggleAlgo} runAlgoOnce={runAlgoOnce} resetGame={resetGame} />
     </div>
   )
 }

@@ -47,7 +47,7 @@ const getNextTileIndex = (tileIndex, direction, size) => {
 }
 
 const indexToCoordinates = (index, size) => {
-  return [Math.floor(index / size), index % size]
+  return [index % size, size - Math.floor(index / size) - 1]
 }
 
 const inSameRowOrColumn = (index1, index2, size) => {
@@ -175,7 +175,10 @@ const getAndApplyPushTileActions = (direction, initialTileIndex, mergedIndices, 
         tileIndex = nextTileIndex
         nextTileIndex = getNextTileIndex(tileIndex, direction, size)
         nextTile = boardState[nextTileIndex]
-      } else if (nextTile.value === tile.value && !mergedIndices.includes(nextTileIndex)) {
+      } else if (
+          nextTile.value === tile.value
+          && !mergedIndices.includes(nextTileIndex)
+      ) {
         const action = {
           type: MERGE,
           fromIndex: tileIndex,
@@ -183,6 +186,7 @@ const getAndApplyPushTileActions = (direction, initialTileIndex, mergedIndices, 
         }
         applyAction(action, boardState)
         actions.push(action)
+        newlyMergedIndices.push(nextTileIndex)
         break
       } else {
         break

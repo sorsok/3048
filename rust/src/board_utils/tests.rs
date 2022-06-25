@@ -1,4 +1,5 @@
 use super::*;
+
 #[test]
 fn apply_and_reverse_actions() {
     let mut board = Board::empty();
@@ -64,7 +65,7 @@ fn move_tiles() {
         })
     }
     board.apply_actions(&actions);
-    board.move_tiles(&Direction::RIGHT);
+    let move_actions = board.move_tiles(&Direction::RIGHT);
     for x in 0..SIZE {
         let expected_value = match x {
             x if x >= SIZE / 2 => 4,
@@ -81,6 +82,168 @@ fn move_tiles() {
     }
     let board_sum: u32 = board.tile_map.values().map(|x| x.value).sum();
     assert_eq!(board_sum, SIZE * 2);
+
+    board.reverse_actions(&move_actions.unwrap());
+    print!("{}", board.board_string())
+}
+
+#[test]
+fn move_tiles_complex_right() {
+    // ++++   ++++
+    // ++++   ++++
+    // ++++   ++++
+    // 2244   ++48
+    let mut board = Board::empty();
+    board
+        .tile_map
+        .insert(Coordinate::new(0, 0), Tile::new(Coordinate::new(0, 0), 2));
+    board
+        .tile_map
+        .insert(Coordinate::new(1, 0), Tile::new(Coordinate::new(1, 0), 2));
+    board
+        .tile_map
+        .insert(Coordinate::new(2, 0), Tile::new(Coordinate::new(2, 0), 4));
+    board
+        .tile_map
+        .insert(Coordinate::new(3, 0), Tile::new(Coordinate::new(3, 0), 4));
+
+    let move_actions = board.move_tiles(&Direction::RIGHT);
+    let non_empty_coordinates = vec![Coordinate::new(2, 0), Coordinate::new(3, 0)];
+    for x in 0..4 {
+        for y in 0..4 {
+            let coord = Coordinate::new(x, y);
+            if !non_empty_coordinates.contains(&coord) {
+                assert_eq!(board.tile_map.get(&coord).unwrap().value, 0);
+            }
+        }
+    }
+    assert_eq!(board.tile_map.get(&Coordinate::new(2, 0)).unwrap().value, 4);
+    assert_eq!(board.tile_map.get(&Coordinate::new(3, 0)).unwrap().value, 8);
+    let board_sum: u32 = board.tile_map.values().map(|x| x.value).sum();
+    assert_eq!(board_sum, 12);
+
+    board.reverse_actions(&move_actions.unwrap());
+    print!("{}", board.board_string())
+}
+
+#[test]
+fn move_tiles_complex_down() {
+    // +++2   ++++
+    // +++2   ++++
+    // +++4   +++4
+    // +++4   +++8
+    let mut board = Board::empty();
+    board
+        .tile_map
+        .insert(Coordinate::new(3, 0), Tile::new(Coordinate::new(3, 0), 4));
+    board
+        .tile_map
+        .insert(Coordinate::new(3, 1), Tile::new(Coordinate::new(3, 1), 4));
+    board
+        .tile_map
+        .insert(Coordinate::new(3, 2), Tile::new(Coordinate::new(3, 2), 2));
+    board
+        .tile_map
+        .insert(Coordinate::new(3, 3), Tile::new(Coordinate::new(3, 3), 2));
+    println!("{}", board.board_string());
+
+    let move_actions = board.move_tiles(&Direction::DOWN);
+    let non_empty_coordinates = vec![Coordinate::new(3, 0), Coordinate::new(3, 1)];
+    for x in 0..4 {
+        for y in 0..4 {
+            let coord = Coordinate::new(x, y);
+            if !non_empty_coordinates.contains(&coord) {
+                assert_eq!(board.tile_map.get(&coord).unwrap().value, 0);
+            }
+        }
+    }
+    assert_eq!(board.tile_map.get(&Coordinate::new(3, 0)).unwrap().value, 8);
+    assert_eq!(board.tile_map.get(&Coordinate::new(3, 1)).unwrap().value, 4);
+    let board_sum: u32 = board.tile_map.values().map(|x| x.value).sum();
+    assert_eq!(board_sum, 12);
+    println!("{}", board.board_string());
+    board.reverse_actions(&move_actions.unwrap());
+    println!("{}", board.board_string())
+}
+
+#[test]
+fn move_tiles_complex_left() {
+    // 4422   84++
+    // ++++   ++++
+    // ++++   ++++
+    // ++++   ++++
+    let mut board = Board::empty();
+    board
+        .tile_map
+        .insert(Coordinate::new(0, 3), Tile::new(Coordinate::new(0, 3), 4));
+    board
+        .tile_map
+        .insert(Coordinate::new(1, 3), Tile::new(Coordinate::new(1, 3), 4));
+    board
+        .tile_map
+        .insert(Coordinate::new(2, 3), Tile::new(Coordinate::new(2, 3), 2));
+    board
+        .tile_map
+        .insert(Coordinate::new(3, 3), Tile::new(Coordinate::new(3, 3), 2));
+    println!("{}", board.board_string());
+
+    let move_actions = board.move_tiles(&Direction::LEFT);
+    let non_empty_coordinates = vec![Coordinate::new(0, 3), Coordinate::new(1, 3)];
+    for x in 0..4 {
+        for y in 0..4 {
+            let coord = Coordinate::new(x, y);
+            if !non_empty_coordinates.contains(&coord) {
+                assert_eq!(board.tile_map.get(&coord).unwrap().value, 0);
+            }
+        }
+    }
+    assert_eq!(board.tile_map.get(&Coordinate::new(0, 3)).unwrap().value, 8);
+    assert_eq!(board.tile_map.get(&Coordinate::new(1, 3)).unwrap().value, 4);
+    let board_sum: u32 = board.tile_map.values().map(|x| x.value).sum();
+    assert_eq!(board_sum, 12);
+    println!("{}", board.board_string());
+    board.reverse_actions(&move_actions.unwrap());
+    println!("{}", board.board_string())
+}
+
+#[test]
+fn move_tiles_complex_up() {
+    // 4+++   8+++
+    // 4+++   4+++
+    // 2+++   ++++
+    // 2+++   ++++
+    let mut board = Board::empty();
+    board
+        .tile_map
+        .insert(Coordinate::new(0, 0), Tile::new(Coordinate::new(0, 0), 2));
+    board
+        .tile_map
+        .insert(Coordinate::new(0, 1), Tile::new(Coordinate::new(0, 1), 2));
+    board
+        .tile_map
+        .insert(Coordinate::new(0, 2), Tile::new(Coordinate::new(0, 2), 4));
+    board
+        .tile_map
+        .insert(Coordinate::new(0, 3), Tile::new(Coordinate::new(0, 3), 4));
+    println!("{}", board.board_string());
+
+    let move_actions = board.move_tiles(&Direction::UP);
+    let non_empty_coordinates = vec![Coordinate::new(0, 3), Coordinate::new(0, 2)];
+    for x in 0..4 {
+        for y in 0..4 {
+            let coord = Coordinate::new(x, y);
+            if !non_empty_coordinates.contains(&coord) {
+                assert_eq!(board.tile_map.get(&coord).unwrap().value, 0);
+            }
+        }
+    }
+    assert_eq!(board.tile_map.get(&Coordinate::new(0, 3)).unwrap().value, 8);
+    assert_eq!(board.tile_map.get(&Coordinate::new(0, 2)).unwrap().value, 4);
+    let board_sum: u32 = board.tile_map.values().map(|x| x.value).sum();
+    assert_eq!(board_sum, 12);
+    println!("{}", board.board_string());
+    board.reverse_actions(&move_actions.unwrap());
+    println!("{}", board.board_string())
 }
 
 #[test]

@@ -22,7 +22,7 @@ impl fmt::Display for Direction {
 }
 
 #[wasm_bindgen]
-#[derive(Hash, Eq, PartialEq, Debug, Copy)]
+#[derive(Hash, Eq, PartialEq, Debug, Copy, Serialize, Deserialize)]
 pub struct Coordinate {
     x: u32,
     y: u32,
@@ -66,8 +66,8 @@ impl Coordinate {
     }
 
     pub fn from_index(index: u32, size: u32) -> Coordinate {
-        let x = index / size;
-        let y = index % size;
+        let x = index % size;
+        let y = size - index / size - 1;
         Coordinate { x, y }
     }
 }

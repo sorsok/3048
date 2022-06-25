@@ -7,8 +7,9 @@ import {
   getMoveTilesActions,
   MERGE,
   GENERATE,
+  RIGHT,
+  DOWN,
 } from './BoardUtils'
-import { DOWN } from './utils'
 
 const boardState = [
   { value: null, isEmpty: true },
@@ -160,4 +161,75 @@ test('get move tiles actions', () => {
   ])
   reverseAllActions(actions, boardStateCopy)
   expect(boardStateCopy).toEqual(boardState)
+})
+
+
+test('get move tiles actions complex', () => {
+  const initialState = [
+  { value: null, isEmpty: true },
+  { value: null, isEmpty: true },
+  { value: null, isEmpty: true },
+  { value: null, isEmpty: true },
+  { value: null, isEmpty: true },
+  { value: null, isEmpty: true },
+  { value: null, isEmpty: true },
+  { value: null, isEmpty: true },
+  { value: null, isEmpty: true },
+  { value: null, isEmpty: true },
+  { value: null, isEmpty: true },
+  { value: null, isEmpty: true },
+  { value: 2, isEmpty: false },
+  { value: 2, isEmpty: false },
+  { value: 4, isEmpty: false },
+  { value: 4, isEmpty: false },
+]
+
+    const mergedState = [
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: null, isEmpty: true },
+    { value: 4, isEmpty: false },
+    { value: 8, isEmpty: false },
+  ]
+  const actions = [
+    {
+      type: MERGE,
+      fromIndex: 14,
+      toIndex: 15,
+    },
+    {
+      type: MOVE,
+      fromIndex: 13,
+      toIndex: 14,
+    },
+    {
+      type: MOVE,
+      fromIndex: 12,
+      toIndex: 13,
+    },
+    {
+      type: MERGE,
+      fromIndex: 13,
+      toIndex: 14,
+    },
+  ]
+  const initialStateCopy = JSON.parse(JSON.stringify(initialState))
+  console.log(getMoveTilesActions(RIGHT, initialStateCopy))
+  expect(getMoveTilesActions(RIGHT, initialStateCopy)).toEqual(actions)
+  expect(initialStateCopy).toEqual(initialState)
+  applyAllActions(actions, initialStateCopy)
+  expect(initialStateCopy).toEqual(mergedState)
+  reverseAllActions(actions, initialStateCopy)
+  expect(initialStateCopy).toEqual(initialState)
 })

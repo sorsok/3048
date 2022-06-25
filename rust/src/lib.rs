@@ -18,8 +18,24 @@ extern "C" {
 }
 
 #[wasm_bindgen]
-pub fn search(js_board: &JsValue, depth: u32) -> JsValue {
+pub fn search(
+    js_board: &JsValue,
+    depth: u32,
+    id: String,
+    parent_direction: String,
+    new_tile_value: u32,
+) -> JsValue {
+    console_error_panic_hook::set_once();
     let mut board = Board::from_js(js_board);
+    // log(&format!(
+    //     "RECEIVED: id={}, depth={}, parent_direction={}, new_tile_value={}\n{}",
+    //     id,
+    //     depth.to_string(),
+    //     parent_direction,
+    //     new_tile_value.to_string(),
+    //     board.board_string()
+    // ));
     let next_move = board.recursive_lookahead(depth);
+    // log(&format!("depth={}, move={:?}", depth, next_move));
     JsValue::from_serde(&next_move).unwrap()
 }
