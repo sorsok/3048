@@ -367,7 +367,7 @@ export const useLookaheadAlgorithm = (
             const maxValue = maxTileValue(boardState);
             const equalTileCount = getAdjacentEqualTileCount(boardState)
             const emptyTileCount = getEmptyTileCount(boardState)
-            const searchDepth = Math.min(Math.max( -6 -emptyTileCount/2 - equalTileCount/2 + Math.log2(maxValue) , 0), 8)
+            const searchDepth = Math.min(Math.max( -7 -emptyTileCount/2 - equalTileCount/2 + Math.log2(maxValue) , 0), 8)
 
             DIRECTIONS.forEach((direction) => {
                 const actions = directionActions[direction]

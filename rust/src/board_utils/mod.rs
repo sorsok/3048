@@ -421,15 +421,11 @@ impl Board {
         }
 
         let output = Direction::into_enum_iter().fold(Move::empty(), |best_move, direction| {
-            // log(&format!("CHECKING DIRECTION: {:?}", direction));
             match self.move_tiles(&direction) {
                 Some(move_actions) => {
                     let two_actions = self.get_generate_actions(2);
                     let two_move = two_actions.iter().fold(Move::empty(), |acc, action| {
-                        // log(&format!("ABOUT TO APPLY: {:?}", action));
-                        // log(&format!("BEFORE APPLYING ACTION:\n{}", self.board_string()));
                         self.apply_action(&action);
-                        // log(&format!("AFTER APPLYING ACTION:\n{}", self.board_string()));
                         let child_move = self.recursive_lookahead(depth - 1);
                         match child_move.score {
                             Some(x) => (),
@@ -445,6 +441,7 @@ impl Board {
                             leaves: acc.leaves + child_move.leaves,
                         }
                     });
+
                     let four_actions = self.get_generate_actions(4);
                     let four_move = four_actions.iter().fold(Move::empty(), |acc, action| {
                         self.apply_action(&action);
@@ -459,8 +456,8 @@ impl Board {
                     let combined_move = Move {
                         direction: Some(direction),
                         score: Some(
-                            (two_move.score.unwrap() * 0.9 + four_move.score.unwrap() * 0.1)
-                                / two_actions.len() as f32,
+                            ((two_move.score.unwrap() / (two_actions.len() as f32)) * 0.9)
+                                + (four_move.score.unwrap() / (four_actions.len() as f32) * 0.1),
                         ),
                         leaves: two_move.leaves + four_move.leaves,
                     };
@@ -482,14 +479,12 @@ impl Board {
             }
         });
         match output.score {
-            Some(score) => (),
+            Some(_) => (),
             None => {
                 log(&format!("FUCKING ERROR DAWG \n{}", self.board_string()));
                 log(&format!("depth \n{}", depth.to_string()));
             }
         }
-        // log(&format!("expected:\n{}", initial_board_string));
-        // log(&format!("actual:\n{}", self.board_string()));
         assert_eq!(initial_board_string, self.board_string());
         output
     }
